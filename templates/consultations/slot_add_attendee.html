@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Reserve lead{% endblock %}
+{% block crumb %}Reserve lead{% endblock %}
+{% block back_href %}{% url 'consultation_slot_detail' slot.pk %}{% endblock %}
+
+{% block content %}
+<div class="animate-rise max-w-[560px]">
+  <h1 class="page-title mb-1">Reserve a lead into this slot</h1>
+  <p class="page-sub mb-5">{{ slot.date|date:"D, j M" }} · {{ slot.time|time:"g:i A"|default:"—" }} · {{ slot.counselor|default:"Unassigned" }}</p>
+
+  <form method="post" class="form-styled card p-6">
+    {% csrf_token %}
+    <div class="field">
+      <label class="label" for="id_lead">Lead</label>
+      <select name="lead_id" id="id_lead" required>
+        <option value="">— Select a lead —</option>
+        {% for lead in available_leads %}
+          <option value="{{ lead.pk }}">{{ lead.full_name }} ({{ lead.user_code }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex gap-2.5 mt-4 pt-4 border-t border-line-soft">
+      <button class="btn-primary px-6">Reserve</button>
+      <a href="{% url 'consultation_slot_detail' slot.pk %}" class="btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

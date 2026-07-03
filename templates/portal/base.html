@@ -1,0 +1,45 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Nobigo{% endblock %} · Student</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="bg-canvas text-ink min-h-screen">
+  <div class="mx-auto max-w-[460px] min-h-screen bg-canvas flex flex-col relative">
+    <!-- Top bar -->
+    <header class="sticky top-0 z-10 bg-canvas/90 backdrop-blur px-5 pt-5 pb-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-[11px] bg-brand-grad grid place-items-center text-white font-bold">N</div>
+        <div>
+          <div class="font-bold text-[15px] leading-none">Nobigo</div>
+          <div class="text-[11px] text-muted mt-0.5">{% block subtitle %}Student Portal{% endblock %}</div>
+        </div>
+      </div>
+      <form method="post" action="{% url 'logout' %}" class="m-0">{% csrf_token %}
+        <button class="w-9 h-9 rounded-[10px] border border-line bg-surface grid place-items-center text-muted-strong">⏻</button>
+      </form>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 px-5 pb-28 pt-2">
+      {% include "partials/_messages.html" %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom tab bar -->
+    {% with cur=request.resolver_match.url_name %}
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[460px] bg-surface border-t border-line px-3 py-2 flex justify-around">
+      {% include "portal/_tab.html" with url='portal_home' label='Home' active=cur icon='◱' %}
+      {% include "portal/_tab.html" with url='portal_progress' label='Progress' active=cur icon='◪' %}
+      {% include "portal/_tab.html" with url='portal_leaderboard' label='Ranks' active=cur icon='♛' %}
+      {% include "portal/_tab.html" with url='portal_curriculum' label='Lessons' active=cur icon='▤' %}
+      {% include "portal/_tab.html" with url='portal_notices' label='Notices' active=cur icon='◔' %}
+    </nav>
+    {% endwith %}
+  </div>
+</body>
+</html>

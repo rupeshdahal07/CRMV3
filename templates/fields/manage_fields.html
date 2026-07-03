@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Manage Fields{% endblock %}
+{% block crumb %}Manage Fields{% endblock %}
+{% block section %}Settings{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'field_create' target_model %}" class="btn-dark">+ Add field</a>
+{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <div class="flex justify-between items-start mb-5 flex-wrap gap-3">
+    <div>
+      <h1 class="page-title">Manage Fields</h1>
+      <p class="page-sub mt-1">Custom fields added here appear on that module's create/edit form — no migration needed.</p>
+    </div>
+    <form method="get" action="" onsubmit="return false;" class="form-styled">
+      <select onchange="window.location.href='/fields/'+this.value+'/'" class="!py-2">
+        {% for val, label in target_choices %}
+          <option value="{{ val }}" {% if val == target_model %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div class="tbl">
+    <div class="tbl-head grid grid-cols-[2fr_1fr_1fr_1fr_1.4fr] gap-3"><div>Field</div><div>Type</div><div>Required</div><div>Active</div><div class="text-right">Actions</div></div>
+    {% for f in fields %}
+      <div class="tbl-row grid grid-cols-[2fr_1fr_1fr_1fr_1.4fr] gap-3">
+        <div>
+          <div class="font-semibold text-sm">{{ f.label }}</div>
+          <div class="text-[11px] text-muted">{{ f.key }}{% if f.group %} · {{ f.group }}{% endif %}</div>
+        </div>
+        <div><span class="chip-info">{{ f.get_field_type_display }}</span></div>
+        <div class="text-[13px] text-muted-strong">{% if f.required %}Required{% else %}Optional{% endif %}</div>
+        <div>{% if f.active %}<span class="chip-ok">Active</span>{% else %}<span class="chip-neutral">Off</span>{% endif %}</div>
+        <div class="flex items-center justify-end gap-3 text-[12px]">
+          <a href="{% url 'field_move' f.pk 'up' %}" class="text-muted-faint hover:text-ink no-underline">↑</a>
+          <a href="{% url 'field_move' f.pk 'down' %}" class="text-muted-faint hover:text-ink no-underline">↓</a>
+          <a href="{% url 'field_edit' f.pk %}" class="text-brand font-semibold no-underline">Edit</a>
+          <a href="{% url 'field_delete' f.pk %}" class="text-danger font-semibold no-underline">Delete</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="px-[22px] py-10 text-center text-[13px] text-muted">No custom fields on this module yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

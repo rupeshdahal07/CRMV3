@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load crm_extras %}
+{% block title %}{% if is_new %}New{% else %}Edit{% endif %} · {{ cfg.title }}{% endblock %}
+{% block crumb %}{{ cfg.title }}{% endblock %}
+
+{% block content %}
+<div class="animate-rise max-w-[720px]">
+  <h1 class="page-title mb-5">{% if is_new %}New {{ cfg.title }}{% else %}Edit {{ cfg.title }}{% endif %}</h1>
+
+  <form method="post" class="form-styled card p-7" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="mb-5 px-4 py-3 rounded-[10px] bg-danger-soft text-danger text-[12.5px] font-medium">
+        {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+      </div>
+    {% endif %}
+    {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-0">
+      {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+      {% for field in form.visible_fields %}
+        {% with kind=field|field_type %}
+          <div class="field {% if kind == 'textarea' or kind == 'checks' %}sm:col-span-2{% endif %}">
+            {% if kind == 'check' %}
+              <label class="flex items-center gap-2.5 cursor-pointer py-1.5">
+                {{ field }}
+                <span class="text-[13px] font-medium text-ink-mute">{{ field.label }}</span>
+              </label>
+            {% else %}
+              <label class="label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+              {{ field }}
+            {% endif %}
+            {% if field.help_text %}<div class="help">{{ field.help_text|safe }}</div>{% endif %}
+            {% for e in field.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+          </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+    <div class="flex items-center gap-2.5 mt-6 pt-5 border-t border-line-soft">
+      <button type="submit" class="btn-primary px-6">{% if is_new %}Create{% else %}Save changes{% endif %}</button>
+      <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'record_list' cfg.key %}{% endif %}" class="btn-ghost">Cancel</a>
+      <div class="flex-1"></div>
+      {% if not is_new %}
+        <a href="{% url 'record_delete' cfg.key obj.pk %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn-danger-ghost">Delete</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

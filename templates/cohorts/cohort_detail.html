@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load crm_extras %}
+{% block title %}{{ cohort }}{% endblock %}
+{% block crumb %}{{ cohort }}{% endblock %}
+{% block section %}Classes{% endblock %}
+{% block back_href %}{% url 'record_list' 'cohorts' %}{% endblock %}
+
+{% block topbar_actions %}
+  {% if can_edit_cohort %}<a href="{% url 'record_edit' 'cohorts' cohort.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost">Edit</a>{% endif %}
+  <a href="{% url 'cohort_leaderboard' cohort.pk %}" class="btn-ghost">Leaderboard</a>
+  {% if can_score %}<a href="{% url 'cohort_scoring' cohort.pk next_scoring_day %}" class="btn-dark">Daily scoring</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-5">
+    <div class="w-[54px] h-[54px] rounded-2xl bg-brand-grad avatar text-lg">{{ cohort.code|slice:":2"|upper }}</div>
+    <div>
+      <div class="text-[11px] font-semibold text-muted mb-1">Cohort · {{ cohort.status }} · {{ cohort.current_week_display }}</div>
+      <h1 class="text-2xl font-bold tracking-[-.02em] m-0">{{ cohort }}</h1>
+      <div class="text-[13px] text-muted mt-1">{{ cohort.get_level_display|default:"—" }} · {{ cohort.assigned_teacher|default:"No teacher" }}{% if cohort.class_time %} · {{ cohort.class_time|time:"g:i A" }}{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-6">
+    {% include "leads/_field.html" with label="Students" value=enrollments|length %}
+    {% include "leads/_field.html" with label="Week" value=cohort.current_week_display %}
+    {% include "leads/_field.html" with label="Curriculum" value=cohort.curriculum %}
+    {% include "leads/_field.html" with label="Status" value=cohort.get_status_display %}
+  </div>
+
+  <!-- Roster -->
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="section-title">Roster</h2>
+    {% if can_edit_enrollments %}<a href="{% url 'record_create' 'enrollments' %}?cohort={{ cohort.pk }}" class="text-[12px] font-semibold text-brand no-underline">+ Enroll student</a>{% endif %}
+  </div>
+  <div class="tbl mb-8">
+    <div class="tbl-head grid grid-cols-[2fr_1fr_1fr_1.2fr] gap-3"><div>Student</div><div>Nobigo score</div><div>Streak</div><div class="text-right">Attention</div></div>
+    {% for e in enrollments %}
+      <div class="tbl-row grid grid-cols-[2fr_1fr_1fr_1.2fr] gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-[9px] bg-chip avatar !text-ink text-[13px]">{{ e.lead.full_name|slice:":1"|upper }}</div>
+          {% if can_view_leads %}
+            <a href="{% url 'lead_detail' e.lead.pk %}" class="font-semibold text-sm no-underline text-ink hover:text-brand">{{ e.lead.full_name }}</a>
+          {% else %}
+            <span class="font-semibold text-sm">{{ e.lead.full_name }}</span>
+          {% endif %}
+        </div>
+        <div class="font-bold text-brand">{{ e.total_score }}</div>
+        <div class="text-[13px] text-muted-strong">{{ e.streak_score }} pt</div>
+        <div class="text-right">
+          {% if e.needs_attention %}<span class="chip-warn">Flagged</span>{% else %}<span class="chip-ok">OK</span>{% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="px-[22px] py-10 text-center text-[13px] text-muted">No students enrolled yet.</div>
+    {% endfor %}
+  </div>
+
+  <!-- Schedule -->
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="section-title">Upcoming schedule</h2>
+    {% if can_edit_events %}<a href="{% url 'record_create' 'class-events' %}?cohort={{ cohort.pk }}" class="text-[12px] font-semibold text-brand no-underline">+ Add event</a>{% endif %}
+  </div>
+  <div class="card divide-y divide-line-soft">
+    {% for ev in events %}
+      <div class="flex items-center gap-4 px-5 py-3.5">
+        <span class="chip-{% if ev.event_type == 'event' %}info{% else %}neutral{% endif %}">{{ ev.get_event_type_display }}</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-[13.5px] truncate">{{ ev.details|default:ev.schedule_week_day_display }}</div>
+          <div class="text-[12px] text-muted">{{ ev.date|date:"D, j M"|default:"No date" }}{% if ev.time %} · {{ ev.time|time:"g:i A" }}{% endif %}{% if ev.notice %} · <span class="text-amber font-semibold">Notice</span>{% endif %}</div>
+        </div>
+        {% if can_edit_events %}<a href="{% url 'record_edit' 'class-events' ev.pk %}?next={{ request.get_full_path|urlencode }}" class="text-muted-faint hover:text-ink no-underline">✎</a>{% endif %}
+      </div>
+    {% empty %}
+      <div class="px-5 py-10 text-center text-[13px] text-muted">No upcoming events.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

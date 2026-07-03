@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load crm_extras %}
+{% block title %}{{ cfg.title }}{% endblock %}
+{% block crumb %}{{ cfg.title }}{% endblock %}
+
+{% block topbar_actions %}
+  {% if can_edit %}
+    <a href="{% url 'record_create' cfg.key %}{% if parent_obj %}?{{ cfg.parent_field }}={{ parent_obj.pk }}{% endif %}" class="btn-dark">+ New</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <div class="flex justify-between items-start mb-5">
+    <div>
+      <h1 class="page-title">{{ cfg.title }}</h1>
+      {% if parent_obj %}<p class="page-sub mt-1">Filtered to <span class="font-semibold text-ink">{{ parent_obj }}</span></p>{% endif %}
+    </div>
+    {% if can_edit %}
+      <a href="{% url 'record_create' cfg.key %}{% if parent_obj %}?{{ cfg.parent_field }}={{ parent_obj.pk }}{% endif %}" class="btn-dark">+ New</a>
+    {% endif %}
+  </div>
+
+  <!-- Search + filters -->
+  <form method="get" class="flex flex-wrap items-center gap-2.5 mb-4">
+    {% if parent_obj %}<input type="hidden" name="{{ cfg.parent_field }}" value="{{ parent_obj.pk }}">{% endif %}
+    {% if cfg.search_fields %}
+      <div class="flex items-center gap-2 bg-line-soft border border-line rounded-[10px] px-3 py-2 w-[260px]">
+        <span class="text-muted-faint">⌕</span>
+        <input type="text" name="q" value="{{ q }}" placeholder="Search…"
+               class="bg-transparent border-0 outline-none text-[12.5px] flex-1 placeholder:text-muted-faint">
+      </div>
+    {% endif %}
+    {% for f in filter_defs %}
+      <select name="{{ f.param }}" onchange="this.form.submit()"
+              class="text-[12.5px] font-medium bg-surface border border-line-strong rounded-[10px] px-3 py-2 text-ink-mute cursor-pointer">
+        <option value="">{{ f.label }}: All</option>
+        {% for val, label in f.choices %}
+          <option value="{{ val }}" {% if f.value == val|stringformat:'s' %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    {% endfor %}
+    <button type="submit" class="btn-ghost">Apply{% if active_filter_count %} · {{ active_filter_count }}{% endif %}</button>
+    {% if q or active_filter_count %}
+      <a href="{% url 'record_list' cfg.key %}{% if parent_obj %}?{{ cfg.parent_field }}={{ parent_obj.pk }}{% endif %}" class="text-[12px] font-semibold text-muted hover:text-ink no-underline px-2">Clear</a>
+    {% endif %}
+  </form>
+
+  {% if module_key == 'followups' and followup_needed %}
+    <div class="card p-4 mb-4 border-amber/40 bg-amber-soft/40">
+      <div class="text-[12px] font-semibold text-amber mb-2">⚑ Leads flagged for attention ({{ followup_needed|length }})</div>
+      <div class="flex flex-wrap gap-2">
+        {% for f in followup_needed %}
+          <a href="{% url 'resolve_followup_need' f.lead.pk %}?next={{ request.get_full_path|urlencode }}" class="chip-amber hover:opacity-80 no-underline">{{ f.lead.full_name }} →</a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Table -->
+  <div class="tbl">
+    <div class="tbl-head grid gap-3" style="grid-template-columns: repeat({{ cfg.list_columns|length }}, minmax(0,1fr));">
+      {% for label, path, badge in cfg.list_columns %}<div>{{ label }}</div>{% endfor %}
+    </div>
+    {% for row in rows %}
+      {% if cfg.has_detail %}
+        <a href="{% url cfg.detail_url_name row.obj.pk %}" class="tbl-row-link grid gap-3 no-underline text-ink" style="grid-template-columns: repeat({{ cfg.list_columns|length }}, minmax(0,1fr));">
+      {% elif can_edit %}
+        <a href="{% url 'record_edit' cfg.key row.obj.pk %}{% if parent_obj %}?next={{ request.get_full_path|urlencode }}{% endif %}" class="tbl-row-link grid gap-3 no-underline text-ink" style="grid-template-columns: repeat({{ cfg.list_columns|length }}, minmax(0,1fr));">
+      {% else %}
+        <div class="tbl-row grid gap-3" style="grid-template-columns: repeat({{ cfg.list_columns|length }}, minmax(0,1fr));">
+      {% endif %}
+        {% for cell in row.cells %}
+          <div class="text-[13px] {% if forloop.first %}font-semibold text-ink text-sm{% else %}text-muted-strong{% endif %} truncate">
+            {% if cell.value|is_bool %}
+              {% if cell.value %}<span class="chip-ok">Yes</span>{% else %}<span class="chip-neutral">No</span>{% endif %}
+            {% elif cell.badge %}
+              {% if cell.value %}<span class="chip-{{ cell.value|status_badge }}">{{ cell.value }}</span>{% else %}—{% endif %}
+            {% else %}
+              {{ cell.value|default:"—" }}
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% if cfg.has_detail or can_edit %}</a>{% else %}</div>{% endif %}
+    {% empty %}
+      <div class="px-[22px] py-12 text-center text-[13px] text-muted">No records found.</div>
+    {% endfor %}
+  </div>
+  <div class="text-[12px] text-muted-faint mt-3">{{ rows|length }} record{{ rows|length|pluralize }}
+    {% if can_edit and not cfg.has_detail %}· <span class="text-muted">rows are editable</span>{% endif %}
+  </div>
+</div>
+{% endblock %}

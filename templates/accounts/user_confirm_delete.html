@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Delete user{% endblock %}
+{% block crumb %}Delete user{% endblock %}
+{% block section %}Settings{% endblock %}
+{% block back_href %}{% url 'user_list' %}{% endblock %}
+
+{% block content %}
+<div class="animate-rise max-w-[480px] mt-8">
+  <div class="card p-8">
+    <div class="w-12 h-12 rounded-xl bg-danger-soft text-danger grid place-items-center font-bold text-[22px] mb-4">!</div>
+    <h1 class="text-xl font-bold tracking-[-.02em] mb-2">Delete {{ obj.username }}?</h1>
+    <p class="text-sm text-muted-strong leading-relaxed mb-6">This permanently removes the account. This cannot be undone.</p>
+    <form method="post" class="flex gap-2.5">
+      {% csrf_token %}
+      <button class="btn-danger px-6">Delete user</button>
+      <a href="{% url 'user_list' %}" class="btn-ghost">Keep it</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

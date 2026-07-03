@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Reserve slot · {{ lead.full_name }}{% endblock %}
+{% block crumb %}Reserve slot{% endblock %}
+{% block back_href %}{% url 'lead_detail' lead.pk %}{% endblock %}
+
+{% block content %}
+<div class="animate-rise max-w-[640px]">
+  <h1 class="page-title mb-1">Reserve a consultation slot</h1>
+  <p class="page-sub mb-5">Pick an open slot for <span class="font-semibold text-ink">{{ lead.full_name }}</span>.</p>
+
+  <div class="card divide-y divide-line-soft">
+    {% for slot in open_slots %}
+      <div class="flex items-center justify-between px-5 py-4">
+        <div>
+          <div class="font-semibold text-sm">{{ slot.date|date:"D, j M" }} · {{ slot.time|time:"g:i A"|default:"—" }}</div>
+          <div class="text-[12px] text-muted mt-0.5">{{ slot.counselor|default:"Unassigned" }} · {{ slot.reserved_count }} reserved</div>
+        </div>
+        <form method="post" action="{% url 'lead_reserve_slot_confirm' lead.pk slot.pk %}" class="m-0">
+          {% csrf_token %}
+          <button class="btn-primary btn-sm">Reserve</button>
+        </form>
+      </div>
+    {% empty %}
+      <div class="px-5 py-10 text-center text-[13px] text-muted">No open slots available. <a href="{% url 'record_create' 'consultation-slots' %}" class="text-brand font-semibold no-underline">Create one</a>.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

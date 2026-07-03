@@ -1,0 +1,44 @@
+{% load static crm_extras %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Nobigo CRM{% endblock %} · Nobigo CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="bg-canvas text-ink">
+  <div class="p-4 min-h-screen">
+    <div class="flex bg-surface rounded-shell shadow-shell overflow-hidden min-h-[calc(100vh-32px)]">
+
+      {% include "partials/_sidebar.html" %}
+
+      <main class="flex-1 min-w-0 flex flex-col">
+        <!-- Topbar -->
+        <div class="flex items-center gap-3.5 px-6 py-4 border-b border-line">
+          <a href="{% block back_href %}javascript:history.back(){% endblock %}"
+             class="w-[30px] h-[30px] rounded-[9px] border border-line grid place-items-center text-muted-strong no-underline flex-shrink-0 hover:bg-line-soft">←</a>
+          <div class="flex items-center gap-2 text-[13px] text-muted">
+            <span class="flex items-center gap-1.5"><span class="text-[#c9cdd6]">▤</span> {% block section %}Admissions{% endblock %}</span>
+            <span class="text-[#d5d7df]">/</span>
+            <span class="text-ink font-semibold">{% block crumb %}Dashboard{% endblock %}</span>
+          </div>
+          <div class="flex-1"></div>
+          {% block topbar_actions %}{% endblock %}
+        </div>
+
+        <!-- Scroll area -->
+        <div class="flex-1 overflow-y-auto">
+          <div class="px-[30px] py-7 pb-12 max-w-content">
+            {% include "partials/_messages.html" %}
+            {% block content %}{% endblock %}
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

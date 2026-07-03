@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load crm_extras %}
+{% block title %}Daily scoring · {{ cohort }}{% endblock %}
+{% block crumb %}Daily scoring{% endblock %}
+{% block section %}Classes{% endblock %}
+{% block back_href %}{% url 'cohort_detail' cohort.pk %}{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <div class="flex justify-between items-start mb-1.5">
+    <div>
+      <div class="text-[11px] font-semibold text-muted mb-1.5">Daily scoring · Day {{ day_number }} · {{ cohort }}</div>
+      <h1 class="page-title">Day {{ day_number }} — Week {{ week_number }}</h1>
+    </div>
+  </div>
+  <p class="page-sub mb-5">Absences (while classmates are present) auto-flag a follow-up. {% if day_completed %}<span class="chip-ok ml-1">Scored</span>{% endif %}</p>
+
+  <!-- Week + day navigation -->
+  <div class="flex flex-wrap items-center gap-1.5 mb-3">
+    {% for w, start_day in week_options %}
+      <a href="{% url 'cohort_scoring' cohort.pk start_day %}" class="pill {% if w == week_number %}pill-on{% else %}pill-off{% endif %}">Wk {{ w }}</a>
+    {% endfor %}
+  </div>
+  <div class="flex flex-wrap items-center gap-1.5 mb-6">
+    {% for d in week_days %}
+      <a href="{% url 'cohort_scoring' cohort.pk d %}" class="w-9 h-9 grid place-items-center rounded-[10px] text-[12.5px] font-semibold no-underline
+        {% if d == day_number %}bg-brand text-white{% else %}bg-surface border border-line-strong text-ink-mute hover:bg-line-soft{% endif %}">{{ d }}</a>
+    {% endfor %}
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <!-- Day meta -->
+    <div class="card p-4 mb-4 form-styled grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <label class="label">Class date</label>
+        <input type="date" name="day_date" value="{{ day_date|date:'Y-m-d' }}">
+      </div>
+      <div>
+        <label class="label">Lesson</label>
+        <input type="text" name="day_lesson" value="{{ day_lesson }}" placeholder="e.g. Chapter 5">
+      </div>
+      <div>
+        <label class="label">Asked documentation?</label>
+        <select name="day_asked_documentation">
+          <option value="none" {% if day_asked_documentation == 'none' %}selected{% endif %}>No</option>
+          <option value="asked" {% if day_asked_documentation == 'asked' %}selected{% endif %}>Asked in class</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Score grid -->
+    <div class="tbl mb-5">
+      <div class="tbl-head grid grid-cols-[2fr_1fr_0.8fr_0.8fr_0.8fr_1.4fr_0.6fr] gap-3">
+        <div>Student</div><div>Attendance</div><div>Presence</div><div>Effort</div><div>Homework</div><div>Note</div><div class="text-center">Flag</div>
+      </div>
+      {% for row in rows %}
+        {% with e=row.enrollment s=row.score %}
+        <div class="tbl-row grid grid-cols-[2fr_1fr_0.8fr_0.8fr_0.8fr_1.4fr_0.6fr] gap-3 form-styled">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-[9px] bg-chip avatar !text-ink text-[13px]">{{ e.lead.full_name|slice:":1"|upper }}</div>
+            <span class="font-semibold text-sm truncate">{{ e.lead.full_name }}</span>
+          </div>
+          <select name="e{{ e.id }}_status" class="!py-2">
+            <option value="">—</option>
+            <option value="Present" {% if s.status == 'Present' %}selected{% endif %}>Present</option>
+            <option value="Absent" {% if s.status == 'Absent' %}selected{% endif %}>Absent</option>
+          </select>
+          <select name="e{{ e.id }}_cp" class="!py-2">
+            <option value="">—</option>
+            {% for n in "54321" %}<option value="{{ n }}" {% if s.class_presence|stringformat:'s' == n|stringformat:'s' %}selected{% endif %}>{{ n }}</option>{% endfor %}
+          </select>
+          <select name="e{{ e.id }}_ed" class="!py-2">
+            <option value="">—</option>
+            {% for n in "54321" %}<option value="{{ n }}" {% if s.effort_discipline|stringformat:'s' == n|stringformat:'s' %}selected{% endif %}>{{ n }}</option>{% endfor %}
+          </select>
+          <select name="e{{ e.id }}_hw" class="!py-2">
+            <option value="">—</option>
+            {% for n in "5310" %}<option value="{{ n }}" {% if s.hw_practice|stringformat:'s' == n|stringformat:'s' %}selected{% endif %}>{{ n }}</option>{% endfor %}
+          </select>
+          <input type="text" name="e{{ e.id }}_note" value="{{ s.note|default:'' }}" class="!py-2" placeholder="Optional">
+          <div class="grid place-items-center">
+            <input type="checkbox" name="e{{ e.id }}_needs_followup" {% if s.needs_followup %}checked{% endif %}>
+          </div>
+        </div>
+        {% endwith %}
+      {% empty %}
+        <div class="px-[22px] py-10 text-center text-[13px] text-muted">No students enrolled in this cohort.</div>
+      {% endfor %}
+    </div>
+
+    {% if rows %}
+      <div class="flex gap-2.5">
+        <button class="btn-primary px-6">Save day {{ day_number }}</button>
+        <a href="{% url 'cohort_detail' cohort.pk %}" class="btn-ghost">Back to cohort</a>
+      </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   Nobigo CRM — global stylesheet
+   Base resets + reusable component classes built on the design tokens declared
+   in tailwind.config.js. Keep visual decisions here so templates stay semantic.
+   ========================================================================== */
+
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  ::selection {
+    @apply bg-brand text-white;
+  }
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d5d7df;
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* --- Buttons -------------------------------------------------------------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] px-4 py-2
+           text-[12.5px] font-semibold cursor-pointer transition
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-dark {
+    @apply btn bg-ink text-white border-none hover:-translate-y-px;
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white border-none hover:-translate-y-px;
+  }
+  .btn-ghost {
+    @apply btn bg-surface text-ink-soft border border-line-strong hover:bg-line-soft;
+  }
+  .btn-danger {
+    @apply btn bg-danger text-white border-none hover:-translate-y-px;
+  }
+  .btn-danger-ghost {
+    @apply btn bg-surface text-danger border border-[#f6d5d6] hover:bg-[#fdf3f3];
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-[11.5px];
+  }
+
+  /* --- Surfaces ------------------------------------------------------------- */
+  .card {
+    @apply bg-surface border border-line rounded-card shadow-card;
+  }
+  .panel-dark {
+    @apply bg-ink text-white rounded-card;
+  }
+
+  /* --- Badges / chips ------------------------------------------------------- */
+  .chip {
+    @apply inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-[3px]
+           rounded-[7px] whitespace-nowrap;
+  }
+  .chip-ok {
+    @apply chip bg-success-soft text-success;
+  }
+  .chip-warn {
+    @apply chip bg-danger-soft text-danger;
+  }
+  .chip-amber {
+    @apply chip bg-amber-soft text-amber;
+  }
+  .chip-info,
+  .chip-brand {
+    @apply chip bg-brand-soft text-brand;
+  }
+  .chip-neutral {
+    @apply chip bg-chip text-[#7d8593];
+  }
+  .chip-dot {
+    @apply w-[5px] h-[5px] rounded-full;
+  }
+
+  /* --- Forms ---------------------------------------------------------------- */
+  .field {
+    @apply mb-[18px];
+  }
+  .label {
+    @apply block text-[11.5px] font-semibold text-ink-mute mb-[7px];
+  }
+  .input,
+  .select,
+  .textarea {
+    @apply w-full px-[13px] py-[11px] border border-line-input rounded-[10px]
+           text-sm text-ink bg-surface
+           focus:outline-none focus:border-brand focus:shadow-focus transition;
+  }
+  .textarea {
+    @apply min-h-[80px] resize-y;
+  }
+  .help {
+    @apply text-[11.5px] text-muted mt-1.5;
+  }
+  /* Auto-style raw Django-rendered widgets inside a form (no widget-tweaks needed). */
+  .form-styled input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  .form-styled select,
+  .form-styled textarea {
+    @apply input;
+  }
+  .form-styled textarea {
+    @apply min-h-[80px] resize-y;
+  }
+  .form-styled input[type='checkbox'],
+  .form-styled input[type='radio'] {
+    @apply w-4 h-4 accent-brand cursor-pointer;
+  }
+  .form-styled ul {
+    @apply list-none p-0 m-0 space-y-1.5;
+  }
+  .form-styled ul li label {
+    @apply flex items-center gap-2 text-[13px] font-normal text-ink;
+  }
+  .form-error {
+    @apply text-[11.5px] text-danger mt-1.5;
+  }
+
+  /* --- Page headings -------------------------------------------------------- */
+  .page-kicker {
+    @apply text-[11px] font-semibold text-muted mb-1.5;
+  }
+  .page-title {
+    @apply text-2xl font-bold tracking-[-.02em] m-0;
+  }
+  .page-sub {
+    @apply text-[13px] text-muted-strong m-0;
+  }
+  .section-title {
+    @apply text-[15px] font-semibold m-0;
+  }
+
+  /* --- Tables --------------------------------------------------------------- */
+  .tbl {
+    @apply card overflow-hidden;
+  }
+  .tbl-head {
+    @apply px-[22px] py-[13px] border-b border-line
+           text-[11px] font-semibold text-muted;
+  }
+  .tbl-row {
+    @apply px-[22px] py-[14px] border-b border-line-soft items-center;
+  }
+  .tbl-row-link {
+    @apply tbl-row cursor-pointer transition hover:bg-[#fafafc];
+  }
+
+  /* --- Sidebar -------------------------------------------------------------- */
+  .nav-group {
+    @apply text-[10.5px] font-semibold tracking-[.02em] text-muted-faint
+           mx-2.5 mt-3 mb-1.5 flex items-center gap-1.5;
+  }
+  .nav-link {
+    @apply flex items-center gap-2.5 px-2.5 py-2 mb-0.5 rounded-[9px]
+           text-[13px] font-medium text-ink-mute no-underline transition
+           hover:bg-line-soft;
+  }
+  .nav-link-active {
+    @apply bg-brand-soft text-brand font-semibold hover:bg-brand-soft;
+  }
+  .nav-sub {
+    @apply flex items-center gap-2.5 py-1.5 pl-[30px] pr-2.5 mb-px rounded-lg
+           text-[12.5px] font-medium text-[#7d8593] no-underline hover:bg-line-soft;
+  }
+  .nav-badge {
+    @apply text-[10.5px] font-semibold rounded-md px-[7px] py-px;
+  }
+
+  /* --- Avatars -------------------------------------------------------------- */
+  .avatar {
+    @apply flex items-center justify-center font-semibold text-white flex-shrink-0;
+  }
+
+  /* --- Pills / filter chips ------------------------------------------------- */
+  .pill {
+    @apply text-xs font-semibold rounded-[9px] px-[15px] py-2 whitespace-nowrap cursor-pointer;
+  }
+  .pill-on {
+    @apply pill bg-ink text-white;
+  }
+  .pill-off {
+    @apply pill bg-surface text-ink-mute border border-line-strong hover:bg-line-soft;
+  }
+}

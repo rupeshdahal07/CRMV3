@@ -1,0 +1,43 @@
+{% load crm_extras %}
+<aside class="w-[236px] flex-shrink-0 bg-sidebar border-r border-line flex flex-col py-4">
+  <!-- Brand -->
+  <a href="{% url 'dashboard' %}" class="px-4 pb-4 flex items-center gap-2.5 no-underline text-ink">
+    <div class="w-[34px] h-[34px] rounded-[10px] bg-brand-grad grid place-items-center text-white font-bold text-[15px] flex-shrink-0">N</div>
+    <div class="flex-1 min-w-0">
+      <div class="font-bold text-sm tracking-[-.01em] leading-tight">Nobigo <span class="text-brand font-semibold">CRM</span></div>
+      <div class="text-[11px] text-muted leading-tight">admissions.jp</div>
+    </div>
+  </a>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-3 py-2 overflow-y-auto">
+    {% for group in nav_groups %}
+      <div class="nav-group">{{ group.label }}</div>
+      {% for item in group.items %}
+        <a href="{{ item.href }}" class="nav-link {% if item.active %}nav-link-active{% endif %}">
+          <span class="flex items-center justify-center w-[17px] h-[17px] flex-shrink-0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              {% for d in item.icon %}<path d="{{ d }}"></path>{% endfor %}
+            </svg>
+          </span>
+          <span class="flex-1">{{ item.label }}</span>
+          {% if item.badge %}<span class="nav-badge text-white bg-danger">{{ item.badge }}</span>{% endif %}
+        </a>
+      {% endfor %}
+    {% endfor %}
+  </nav>
+
+  <!-- Footer: user -->
+  <div class="px-3 pt-2.5 mt-1.5 border-t border-line">
+    <div class="flex items-center gap-2.5 px-2.5 py-2 rounded-[10px]">
+      <div class="w-8 h-8 rounded-[9px] bg-ink-grad avatar text-[13px]">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-[12.5px] truncate">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="text-[11px] text-muted capitalize">{{ request.user.role }}</div>
+      </div>
+      <form method="post" action="{% url 'logout' %}" class="m-0">{% csrf_token %}
+        <button type="submit" title="Log out" class="text-muted hover:text-danger bg-transparent border-0 cursor-pointer text-base leading-none">⏻</button>
+      </form>
+    </div>
+  </div>
+</aside>

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ curriculum.name }}{% endblock %}
+{% block crumb %}{{ curriculum.name }}{% endblock %}
+{% block section %}Classes{% endblock %}
+{% block back_href %}{% url 'record_list' 'curriculum' %}{% endblock %}
+
+{% block topbar_actions %}
+  {% if can_edit %}
+    <a href="{% url 'record_edit' 'curriculum' curriculum.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost">Edit</a>
+    <a href="{% url 'record_create' 'curriculum-chapters' %}?curriculum={{ curriculum.pk }}" class="btn-dark">+ Add chapter</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <div class="mb-5">
+    <div class="text-[11px] font-semibold text-muted mb-1.5">Curriculum · {{ curriculum.get_level_display|default:"—" }} · {{ curriculum.chapter_count }} chapters</div>
+    <h1 class="page-title">{{ curriculum.name }}</h1>
+    {% if curriculum.description %}<p class="page-sub mt-1 max-w-[640px]">{{ curriculum.description }}</p>{% endif %}
+  </div>
+
+  <div class="tbl">
+    <div class="tbl-head grid grid-cols-[0.6fr_0.6fr_2.5fr_1.2fr] gap-3"><div>Week</div><div>Day</div><div>Chapter / Lesson</div><div>Teacher</div></div>
+    {% for ch in chapters %}
+      {% if can_edit %}
+        <a href="{% url 'record_edit' 'curriculum-chapters' ch.pk %}?next={{ request.get_full_path|urlencode }}" class="tbl-row-link grid grid-cols-[0.6fr_0.6fr_2.5fr_1.2fr] gap-3 no-underline text-ink">
+      {% else %}
+        <div class="tbl-row grid grid-cols-[0.6fr_0.6fr_2.5fr_1.2fr] gap-3">
+      {% endif %}
+        <div class="font-semibold">W{{ ch.week_number }}</div>
+        <div class="text-muted-strong text-[13px]">Day {{ ch.day_number }}</div>
+        <div class="font-medium text-sm">{{ ch.title }}</div>
+        <div class="text-[13px] text-muted-strong">{{ ch.assigned_teacher|default:"—" }}</div>
+      {% if can_edit %}</a>{% else %}</div>{% endif %}
+    {% empty %}
+      <div class="px-[22px] py-10 text-center text-[13px] text-muted">No chapters yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

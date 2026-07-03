@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load crm_extras %}
+{% block title %}Dashboard{% endblock %}
+{% block crumb %}Pipeline{% endblock %}
+{% block back_href %}{% url 'dashboard' %}{% endblock %}
+
+{% block topbar_actions %}
+  {% if perms %}{% endif %}
+  <a href="{% url 'record_list' 'leads' %}" class="btn-ghost">Leads</a>
+  <a href="{% url 'record_create' 'leads' %}" class="btn-dark">+ New lead</a>
+{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <!-- Hero -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-[26px] font-bold tracking-[-.02em] mb-1.5">Admissions pipeline</h1>
+      <p class="text-[13.5px] text-muted-strong max-w-[560px] leading-relaxed">
+        Track every lead from first call through consultation to enrollment.
+        {% if today_followups %}<span class="text-danger font-semibold">{{ today_followups|length }} need a follow-up today.</span>{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Funnel stat cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    {% with f=funnel %}
+    <div class="card p-5">
+      <div class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft mb-4"><span class="text-brand">▦</span> Leads</div>
+      <div class="text-[32px] font-bold tracking-[-.02em] leading-none">{{ f.leads }}</div>
+      <div class="text-[11.5px] text-muted mt-2">In the funnel</div>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft mb-4"><span class="text-brand">☎</span> Consult. scheduled</div>
+      <div class="text-[32px] font-bold tracking-[-.02em] leading-none">{{ f.consultation_scheduled }}</div>
+      <div class="text-[11.5px] text-muted mt-2">Call status = scheduled</div>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft mb-4"><span class="text-brand">◪</span> Consult. completed</div>
+      <div class="text-[32px] font-bold tracking-[-.02em] leading-none">{{ f.consultation_completed }}</div>
+      <div class="text-[11.5px] text-muted mt-2">Consultations done</div>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft mb-4"><span class="text-success">✓</span> Enrolled</div>
+      <div class="text-[32px] font-bold tracking-[-.02em] leading-none">{{ f.enrolled }}</div>
+      <div class="text-[11.5px] text-muted mt-2">Placed in a cohort</div>
+    </div>
+    {% endwith %}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <!-- Cohorts -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="section-title">Cohorts</h2>
+        <a href="{% url 'record_list' 'cohorts' %}" class="text-[12px] font-semibold text-brand no-underline">View all</a>
+      </div>
+      <div class="space-y-2">
+        {% for c in cohorts %}
+          <a href="{% url 'cohort_detail' c.pk %}" class="flex items-center gap-3 p-2.5 rounded-[10px] hover:bg-line-soft no-underline text-ink">
+            <div class="w-9 h-9 rounded-[10px] bg-brand-grad avatar text-[13px]">{{ c.code|slice:":2"|upper }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-[13.5px] truncate">{{ c }}</div>
+              <div class="text-[11.5px] text-muted">{{ c.assigned_teacher|default:"No teacher" }} · {{ c.current_week_display }}</div>
+            </div>
+            <span class="chip-{{ c.status|status_badge }}">{{ c.status }}</span>
+          </a>
+        {% empty %}
+          <p class="text-[13px] text-muted py-4 text-center">No cohorts yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Needs attention -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="section-title">Needs attention</h2>
+        <a href="{% url 'record_list' 'enrollments' %}?needs_attention=yes" class="text-[12px] font-semibold text-brand no-underline">View all</a>
+      </div>
+      <div class="space-y-2">
+        {% for e in needs_attention %}
+          <div class="flex items-center gap-3 p-2.5 rounded-[10px] bg-danger-soft/40">
+            <div class="w-9 h-9 rounded-[10px] bg-chip avatar !text-ink text-[13px]">{{ e.lead.full_name|slice:":1"|upper }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-[13.5px] truncate">{{ e.lead.full_name }}</div>
+              <div class="text-[11.5px] text-muted">{{ e.cohort }} · Score {{ e.total_score }}</div>
+            </div>
+            <a href="{% url 'lead_detail' e.lead.pk %}" class="chip-warn">Flagged</a>
+          </div>
+        {% empty %}
+          <p class="text-[13px] text-muted py-4 text-center">Everyone's on track. 🎉</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Today's follow-ups -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="section-title">Follow-ups due</h2>
+        <a href="{% url 'record_list' 'followups' %}" class="text-[12px] font-semibold text-brand no-underline">View all</a>
+      </div>
+      <div class="space-y-2">
+        {% for f in today_followups %}
+          <div class="flex items-center gap-3 p-2.5 rounded-[10px] hover:bg-line-soft">
+            <span class="chip-amber">{{ f.get_followup_type_display }}</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-[13px] truncate">{% if f.lead %}{{ f.lead.full_name }}{% elif f.enrollment %}{{ f.enrollment.lead.full_name }}{% else %}—{% endif %}</div>
+              <div class="text-[11.5px] text-muted truncate">{{ f.remark|default:"" }}</div>
+            </div>
+            <div class="text-[11px] text-muted">{{ f.due_date|date:"j M" }}</div>
+          </div>
+        {% empty %}
+          <p class="text-[13px] text-muted py-4 text-center">Nothing due today.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Concern tally -->
+    <div class="card p-5">
+      <h2 class="section-title mb-4">Lead concerns</h2>
+      <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
+        {% for label, count in topic_summary %}
+          <div class="flex items-center justify-between text-[12.5px]">
+            <span class="text-muted-strong">{{ label }}</span>
+            <span class="font-bold">{{ count }}</span>
+          </div>
+        {% endfor %}
+      </div>
+      {% if intake_summary %}
+        <div class="mt-5 pt-4 border-t border-line-soft">
+          <div class="text-[11px] font-semibold text-muted mb-2.5">Intake targets</div>
+          <div class="flex flex-wrap gap-2">
+            {% for name, count in intake_summary %}
+              <span class="chip-neutral">{{ name }} · {{ count }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

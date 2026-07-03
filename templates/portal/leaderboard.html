@@ -1,0 +1,26 @@
+{% extends "portal/base.html" %}
+{% block title %}Leaderboard{% endblock %}
+{% block subtitle %}Leaderboard{% endblock %}
+
+{% block content %}
+<div class="animate-rise space-y-4">
+  <h1 class="text-[22px] font-bold tracking-[-.02em]">Leaderboard</h1>
+  {% if cohort %}<p class="page-sub -mt-2">{{ cohort }}</p>{% endif %}
+
+  <div class="card divide-y divide-line-soft">
+    {% for e in enrollments %}
+      <div class="flex items-center gap-3 px-4 py-3 {% if me and e.pk == me.pk %}bg-brand-soft/50{% endif %}">
+        <div class="w-7 text-center font-bold {% if e.rank <= 3 %}text-brand{% else %}text-muted-faint{% endif %}">{{ e.rank }}</div>
+        <div class="w-9 h-9 rounded-[10px] bg-chip avatar !text-ink text-[13px]">{{ e.lead.full_name|slice:":1"|upper }}</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-[13.5px] truncate">{{ e.lead.full_name }}{% if me and e.pk == me.pk %} <span class="text-brand text-[11px] font-semibold">You</span>{% endif %}</div>
+          <div class="text-[11.5px] text-muted">{{ e.present_count }} present days</div>
+        </div>
+        <div class="font-bold text-brand">{{ e.total_score }}</div>
+      </div>
+    {% empty %}
+      <div class="px-4 py-10 text-center text-[13px] text-muted">No rankings yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

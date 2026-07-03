@@ -1,0 +1,27 @@
+{% extends "portal/base.html" %}
+{% block title %}Lessons{% endblock %}
+{% block subtitle %}Curriculum{% endblock %}
+
+{% block content %}
+<div class="animate-rise space-y-4">
+  <h1 class="text-[22px] font-bold tracking-[-.02em]">Curriculum</h1>
+  {% if cohort.curriculum %}<p class="page-sub -mt-2">{{ cohort.curriculum.name }}</p>{% endif %}
+
+  <div class="card divide-y divide-line-soft">
+    {% for ch in chapters %}
+      <div class="flex items-center gap-3 px-4 py-3">
+        <div class="w-9 h-9 rounded-[10px] grid place-items-center font-bold text-[12px] {% if ch.day_number in covered_days %}bg-success-soft text-success{% else %}bg-chip text-muted-strong{% endif %}">
+          {% if ch.day_number in covered_days %}✓{% else %}{{ ch.day_number }}{% endif %}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-[13.5px] truncate">{{ ch.title }}</div>
+          <div class="text-[12px] text-muted">Week {{ ch.week_number }} · Day {{ ch.day_number }}</div>
+        </div>
+        {% if ch.day_number in covered_days %}<span class="chip-ok">Done</span>{% endif %}
+      </div>
+    {% empty %}
+      <div class="px-4 py-10 text-center text-[13px] text-muted">No curriculum assigned yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

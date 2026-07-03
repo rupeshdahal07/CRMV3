@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Users & Roles{% endblock %}
+{% block crumb %}Users & Roles{% endblock %}
+{% block section %}Settings{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'user_create' %}" class="btn-dark">+ Add user</a>
+{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <div class="flex justify-between items-start mb-5">
+    <div>
+      <h1 class="page-title">Users &amp; Roles</h1>
+      <p class="page-sub mt-1">Staff and student accounts. Students log in to the portal.</p>
+    </div>
+  </div>
+
+  <!-- Search + role filter (server-side) -->
+  <form method="get" class="flex flex-wrap items-center gap-2.5 mb-4">
+    <div class="flex items-center gap-2 bg-line-soft border border-line rounded-[10px] px-3 py-2 w-[260px]">
+      <span class="text-muted-faint">⌕</span>
+      <input type="text" name="q" value="{{ q }}" placeholder="Search name, username, email…"
+             class="bg-transparent border-0 outline-none text-[12.5px] flex-1 placeholder:text-muted-faint">
+    </div>
+    <select name="role" onchange="this.form.submit()"
+            class="text-[12.5px] font-medium bg-surface border border-line-strong rounded-[10px] px-3 py-2 text-ink-mute cursor-pointer">
+      <option value="">Role: All</option>
+      {% for val, label in role_choices %}
+        <option value="{{ val }}" {% if role == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn-ghost">Apply</button>
+    {% if q or role %}
+      <a href="{% url 'user_list' %}" class="text-[12px] font-semibold text-muted hover:text-ink no-underline px-2">Clear</a>
+    {% endif %}
+  </form>
+
+  <div class="tbl">
+    <div class="tbl-head grid grid-cols-[1.6fr_1fr_1fr_1fr_1.2fr] gap-3"><div>Name</div><div>Username</div><div>Role</div><div>Status</div><div class="text-right">Actions</div></div>
+    {% for u in users %}
+      <div class="tbl-row grid grid-cols-[1.6fr_1fr_1fr_1fr_1.2fr] gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-[9px] bg-ink-grad avatar text-[13px]">{{ u.get_full_name|default:u.username|slice:":1"|upper }}</div>
+          <span class="font-semibold text-sm truncate">{{ u.get_full_name|default:u.username }}</span>
+        </div>
+        <div class="text-[13px] text-muted-strong">{{ u.username }}</div>
+        <div><span class="chip-{% if u.role == 'admin' %}info{% else %}neutral{% endif %} capitalize">{{ u.get_role_display }}</span></div>
+        <div>{% if u.is_active %}<span class="chip-ok">Active</span>{% else %}<span class="chip-warn">Inactive</span>{% endif %}</div>
+        <div class="flex items-center justify-end gap-3 text-[12px]">
+          <a href="{% url 'user_edit' u.pk %}" class="text-brand font-semibold no-underline">Edit</a>
+          <a href="{% url 'user_reset_password' u.pk %}" class="text-muted-strong font-semibold no-underline">Password</a>
+          {% if u.pk != request.user.pk %}<a href="{% url 'user_delete' u.pk %}" class="text-danger font-semibold no-underline">Delete</a>{% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="px-[22px] py-12 text-center text-[13px] text-muted">No users match your search.</div>
+    {% endfor %}
+  </div>
+  <div class="text-[12px] text-muted-faint mt-3">{{ users|length }} user{{ users|length|pluralize }}</div>
+</div>
+{% endblock %}

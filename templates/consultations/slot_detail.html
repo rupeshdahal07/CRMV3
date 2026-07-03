@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load crm_extras %}
+{% block title %}Consultation slot{% endblock %}
+{% block crumb %}Consultation slot{% endblock %}
+{% block back_href %}{% url 'record_list' 'consultation-slots' %}{% endblock %}
+
+{% block topbar_actions %}
+  {% if can_edit_slot %}
+    <a href="{% url 'record_edit' 'consultation-slots' slot.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost">Edit</a>
+    <a href="{% url 'consultation_slot_add_attendee' slot.pk %}" class="btn-dark">+ Reserve lead</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <div class="flex items-center gap-4 mb-6">
+    <div class="w-[54px] h-[54px] rounded-2xl bg-brand-grad avatar text-lg">◷</div>
+    <div>
+      <div class="text-[11px] font-semibold text-muted mb-1">Consultation slot · <span class="capitalize">{{ slot.status }}</span></div>
+      <h1 class="text-2xl font-bold tracking-[-.02em] m-0">{{ slot.date|date:"D, j M Y" }} · {{ slot.time|time:"g:i A"|default:"—" }}</h1>
+      <div class="text-[13px] text-muted mt-1">{{ slot.counselor|default:"Unassigned" }}{% if slot.meeting_link %} · <a href="{{ slot.meeting_link }}" class="text-brand no-underline">Meeting link</a>{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-6">
+    {% include "leads/_field.html" with label="Status" value=slot.get_status_display %}
+    {% include "leads/_field.html" with label="Counselor" value=slot.counselor %}
+    {% include "leads/_field.html" with label="Reserved" value=slot.reserved_count %}
+    {% include "leads/_field.html" with label="Date" value=slot.date %}
+  </div>
+
+  <h2 class="section-title mb-3">Attendees</h2>
+  <div class="tbl">
+    <div class="tbl-head grid grid-cols-[2fr_1fr_1fr_0.6fr_1fr] gap-3"><div>Student</div><div>Status</div><div>Seriousness</div><div>PMF</div><div class="text-right">Actions</div></div>
+    {% for a in attendees %}
+      <div class="tbl-row grid grid-cols-[2fr_1fr_1fr_0.6fr_1fr] gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-[9px] bg-chip avatar !text-ink text-[13px]">{{ a.lead.full_name|slice:":1"|upper }}</div>
+          <a href="{% url 'lead_detail' a.lead.pk %}" class="font-semibold text-sm no-underline text-ink hover:text-brand truncate">{{ a.lead.full_name }}</a>
+        </div>
+        <div><span class="chip-{{ a.status|status_badge }}">{{ a.status }}</span></div>
+        <div class="text-[13px] text-muted-strong">{{ a.user_seriousness|default:"—" }}</div>
+        <div class="font-semibold">{{ a.pmf_score|default:"—" }}</div>
+        <div class="text-right">
+          {% if can_edit_slot %}
+            <a href="{% url 'record_edit' 'consultations' a.pk %}?next={{ request.get_full_path|urlencode }}" class="text-brand font-semibold text-[12px] no-underline">Edit status</a>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="px-[22px] py-10 text-center text-[13px] text-muted">No one reserved yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

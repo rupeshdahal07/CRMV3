@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Resolve follow-up · {{ lead.full_name }}{% endblock %}
+{% block crumb %}Resolve follow-up{% endblock %}
+{% block back_href %}{% url 'record_list' 'followups' %}{% endblock %}
+
+{% block content %}
+<div class="animate-rise max-w-[640px]">
+  <h1 class="page-title mb-1">Resolve follow-up</h1>
+  <p class="page-sub mb-5">Log the resolution for <span class="font-semibold text-ink">{{ lead.full_name }}</span> — this closes all {{ pending|length }} pending attention flag{{ pending|length|pluralize }}.</p>
+
+  {% if pending %}
+    <div class="card p-4 mb-5 bg-amber-soft/40">
+      <div class="text-[12px] font-semibold text-amber mb-2">Pending flags</div>
+      <ul class="space-y-1.5">
+        {% for f in pending %}<li class="text-[12.5px] text-ink-mute">· {{ f.remark|default:"Needs attention" }} <span class="text-muted">({{ f.due_date|date:"j M" }})</span></li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form method="post" class="form-styled card p-6">
+    {% csrf_token %}
+    {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+    {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+    {% for field in form.visible_fields %}
+      <div class="field">
+        <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+        {% for e in field.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <div class="flex gap-2.5 mt-4 pt-4 border-t border-line-soft">
+      <button class="btn-primary px-6">Mark resolved</button>
+      <a href="{% url 'record_list' 'followups' %}" class="btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

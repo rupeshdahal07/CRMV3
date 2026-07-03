@@ -1,0 +1,13 @@
+{
+  "name": "nobigo-crm-v3",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Tailwind build pipeline for Nobigo CRM V3 (Django SSR).",
+  "scripts": {
+    "build": "tailwindcss -i ./theme/input.css -o ./static/css/app.css --minify",
+    "watch": "tailwindcss -i ./theme/input.css -o ./static/css/app.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.14"
+  }
+}

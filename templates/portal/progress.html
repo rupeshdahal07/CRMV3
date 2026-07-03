@@ -1,0 +1,46 @@
+{% extends "portal/base.html" %}
+{% block title %}Progress{% endblock %}
+{% block subtitle %}My progress{% endblock %}
+
+{% block content %}
+<div class="animate-rise space-y-4">
+  <h1 class="text-[22px] font-bold tracking-[-.02em]">My progress</h1>
+
+  {% if enrollment %}
+    <div class="grid grid-cols-3 gap-3">
+      <div class="card p-4 text-center">
+        <div class="text-2xl font-bold text-brand">{{ enrollment.total_score }}</div>
+        <div class="text-[11px] text-muted mt-1">Score</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-2xl font-bold text-success">{{ present_count }}</div>
+        <div class="text-[11px] text-muted mt-1">Present</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-2xl font-bold text-danger">{{ absent_count }}</div>
+        <div class="text-[11px] text-muted mt-1">Absent</div>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="section-title mb-2">Daily history</h2>
+      <div class="card divide-y divide-line-soft">
+        {% for s in scores %}
+          <div class="flex items-center gap-3 px-4 py-3">
+            <div class="w-9 h-9 rounded-[10px] grid place-items-center font-bold text-[13px] {% if s.status == 'Present' %}bg-success-soft text-success{% else %}bg-danger-soft text-danger{% endif %}">{{ s.day_number }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-[13.5px]">{{ s.lesson|default:"Day"|add:"" }} {% if not s.lesson %}{{ s.day_number }}{% endif %}</div>
+              <div class="text-[12px] text-muted">{{ s.date|date:"j M" }} · {{ s.status }}</div>
+            </div>
+            <div class="font-bold text-brand">+{{ s.day_total }}</div>
+          </div>
+        {% empty %}
+          <div class="px-4 py-8 text-center text-[13px] text-muted">No scored days yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <div class="card px-5 py-10 text-center text-[13px] text-muted">You're not enrolled in a cohort yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

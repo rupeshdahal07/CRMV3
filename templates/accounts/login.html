@@ -1,0 +1,46 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · Nobigo CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="bg-canvas text-ink min-h-screen grid place-items-center p-4">
+  <div class="w-full max-w-[400px] animate-rise">
+    <div class="flex items-center gap-2.5 mb-6 justify-center">
+      <div class="w-[38px] h-[38px] rounded-[11px] bg-brand-grad grid place-items-center text-white font-bold text-base">N</div>
+      <div class="font-bold text-lg tracking-[-.01em]">Nobigo <span class="text-brand font-semibold">CRM</span></div>
+    </div>
+
+    <div class="card p-8">
+      <h1 class="text-xl font-bold tracking-[-.02em] mb-1">Welcome back</h1>
+      <p class="page-sub mb-6">Sign in with your username or email.</p>
+
+      {% if form.non_field_errors %}
+        <div class="mb-4 px-4 py-3 rounded-[10px] bg-danger-soft text-danger text-[12.5px] font-medium">
+          {{ form.non_field_errors|first }}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="field">
+          <label class="label" for="id_username">Username or Email</label>
+          <input class="input" type="text" name="username" id="id_username" autofocus required
+                 value="{{ form.username.value|default:'' }}">
+        </div>
+        <div class="field">
+          <label class="label" for="id_password">Password</label>
+          <input class="input" type="password" name="password" id="id_password" required>
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="btn-primary w-full mt-2 py-3">Sign in</button>
+      </form>
+    </div>
+    <p class="text-center text-[11.5px] text-muted mt-5">Nobigo — Japanese-language admissions</p>
+  </div>
+</body>
+</html>

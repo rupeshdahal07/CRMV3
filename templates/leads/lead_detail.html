@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load crm_extras %}
+{% block title %}{{ lead.full_name }}{% endblock %}
+{% block crumb %}{{ lead.full_name }}{% endblock %}
+{% block section %}Leads{% endblock %}
+{% block back_href %}{% url 'record_list' 'leads' %}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'record_edit' 'leads' lead.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost">Edit</a>
+  <form method="post" action="{% url 'lead_mark_ready' lead.pk %}" class="m-0">{% csrf_token %}
+    <button class="{% if lead.ready_for_consultation %}btn-ghost{% else %}btn-primary{% endif %}">
+      {% if lead.ready_for_consultation %}✓ Ready for consult{% else %}Mark ready for consult{% endif %}
+    </button>
+  </form>
+{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <!-- Header -->
+  <div class="flex justify-between items-start mb-6 gap-5">
+    <div class="flex items-center gap-[18px]">
+      <div class="w-[60px] h-[60px] rounded-2xl bg-ink-grad avatar text-[26px]">{{ lead.full_name|slice:":1"|upper }}</div>
+      <div>
+        <div class="text-[11px] font-semibold text-muted mb-1.5">Lead #{{ lead.user_code }} · signed up {{ lead.signup_date|default:lead.created_at|date:"j M Y" }}</div>
+        <h1 class="text-[28px] font-bold tracking-[-.02em] m-0">{{ lead.full_name }}</h1>
+        <div class="text-[13px] text-muted mt-1">{{ lead.phone }}{% if lead.agent %} · Agent: {{ lead.agent }}{% endif %}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stage stepper -->
+  <div class="card px-7 py-6 mb-6">
+    <div class="flex items-center justify-between gap-1 overflow-x-auto">
+      {% for stage in stages %}
+        <div class="flex flex-col items-center gap-2 flex-1 min-w-[70px]">
+          {% if forloop.counter0 < stage_index %}
+            <div class="w-10 h-10 rounded-full bg-success text-white avatar text-sm">✓</div>
+          {% elif forloop.counter0 == stage_index %}
+            <div class="w-10 h-10 rounded-full bg-brand text-white avatar text-sm shadow-focus">{{ forloop.counter }}</div>
+          {% else %}
+            <div class="w-10 h-10 rounded-full bg-chip text-muted-faint avatar text-sm">{{ forloop.counter }}</div>
+          {% endif %}
+          <div class="text-[10.5px] font-semibold text-center {% if forloop.counter0 <= stage_index %}text-ink{% else %}text-muted-faint{% endif %}">{{ stage }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Info fields -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3.5 mb-6">
+    {% include "leads/_field.html" with label="Phone" value=lead.phone %}
+    {% include "leads/_field.html" with label="Level" value=lead.get_level_display %}
+    {% include "leads/_field.html" with label="Agent" value=lead.agent %}
+    {% include "leads/_field.html" with label="Visa category" value=lead.get_visa_category_display %}
+    {% include "leads/_field.html" with label="Call status" value=lead.get_call_status_display %}
+    {% include "leads/_field.html" with label="Current stage" value=current_stage %}
+  </div>
+
+  <!-- Documentation status -->
+  <div class="card p-5 mb-6">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <div class="text-[11px] font-semibold text-muted mb-1">Documentation process</div>
+        <div class="text-[15px] font-semibold">{{ lead.get_documentation_status_display|default:"Not started" }}</div>
+      </div>
+      <form method="post" action="{% url 'lead_update_documentation_status' lead.pk %}" class="flex items-center gap-2 m-0">
+        {% csrf_token %}
+        <select name="documentation_status" class="input !w-auto !py-2" onchange="this.form.submit()">
+          <option value="" {% if not lead.documentation_status %}selected{% endif %}>— Not started —</option>
+          {% for val, label in documentation_status_choices %}
+            <option value="{{ val }}" {% if lead.documentation_status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <!-- All notes, concerns & feedback (aggregated from across the funnel) -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="section-title">Notes, concerns &amp; feedback</h2>
+      <span class="text-[12px] text-muted-faint">{{ notes|length }} item{{ notes|length|pluralize }}</span>
+    </div>
+    <div class="card divide-y divide-line-soft">
+      {% for n in notes %}
+        <div class="px-5 py-3.5">
+          <div class="flex items-center justify-between gap-3 mb-1.5">
+            <div class="flex items-center gap-2 min-w-0">
+              {% if n.kind == 'concern' %}<span class="chip-warn">Concern</span>
+              {% elif n.kind == 'feedback' %}<span class="chip-info">Feedback</span>
+              {% elif n.kind == 'followup' %}<span class="chip-amber">Follow-up</span>
+              {% else %}<span class="chip-neutral">Note</span>{% endif %}
+              <span class="text-[11px] font-semibold text-muted truncate">{{ n.source }}</span>
+            </div>
+            <div class="text-[11px] text-muted-faint whitespace-nowrap flex-shrink-0">
+              {% if n.date %}{{ n.date|date:"j M Y" }}{% endif %}{% if n.author %} · {{ n.author }}{% endif %}
+            </div>
+          </div>
+          <div class="text-[13.5px] text-ink whitespace-pre-line">{{ n.text }}</div>
+        </div>
+      {% empty %}
+        <div class="px-5 py-8 text-center text-[13px] text-muted">No notes, concerns or feedback recorded yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 items-start">
+    <!-- Left: student login + related actions -->
+    <div class="space-y-6">
+      <div>
+        <h2 class="section-title mb-3">Student login</h2>
+        <div class="panel-dark p-5">
+          <div class="text-[11px] font-semibold text-muted-soft mb-1">Username</div>
+          <div class="text-base mb-4 font-medium">{{ lead.student_account.username|default:"—" }}</div>
+          <div class="text-[11px] font-semibold text-muted-soft mb-1">Password</div>
+          <div class="text-base tracking-wide font-medium mb-4">{{ lead.student_account.plain_password|default:"—" }}</div>
+          <a href="{% url 'lead_student_credentials' lead.pk %}" class="inline-block text-[12px] font-semibold text-white/80 hover:text-white no-underline">Manage login →</a>
+        </div>
+      </div>
+
+      {% if enroll_suggestion %}
+        <div class="card p-4 border-brand/30 bg-brand-soft/40">
+          <div class="text-[12px] font-semibold text-brand mb-1">Suggested enrollment</div>
+          <div class="text-[13px] text-ink-mute mb-3">Interested in <span class="font-semibold text-ink">{{ enroll_suggestion.preferred_cohort }}</span></div>
+          <a href="{% url 'record_create' 'enrollments' %}?lead={{ lead.pk }}" class="btn-primary btn-sm">Enroll now</a>
+        </div>
+      {% endif %}
+
+      <div class="card p-4">
+        <div class="text-[12px] font-semibold text-muted mb-3">Quick actions</div>
+        <div class="flex flex-wrap gap-2">
+          <a href="{% url 'lead_reserve_slot' lead.pk %}" class="btn-ghost btn-sm">Reserve slot ({{ open_slot_count }})</a>
+          <a href="{% url 'record_create' 'post-consultation-calls' %}?lead={{ lead.pk }}" class="btn-ghost btn-sm">+ Post-call</a>
+          <a href="{% url 'record_create' 'followups' %}?lead={{ lead.pk }}" class="btn-ghost btn-sm">+ Follow-up</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: timeline + related -->
+    <div>
+      <h2 class="section-title mb-3">History</h2>
+      <div class="mb-8">
+        {% for ev in timeline %}
+          <div class="grid grid-cols-[100px_20px_1fr] items-start">
+            <div class="text-[11px] font-semibold text-muted pt-0.5">{{ ev.date|date:"j M Y" }}</div>
+            <div class="flex flex-col items-center self-stretch">
+              <div class="w-[11px] h-[11px] rounded-full mt-1 flex-shrink-0
+                {% if ev.type == 'signup' or ev.type == 'call' %}bg-brand{% elif ev.type == 'consultation' or ev.type == 'post_call' %}bg-amber{% elif ev.type == 'enrollment' or ev.type == 'attendance' %}bg-success{% else %}bg-ink{% endif %}"></div>
+              {% if not forloop.last %}<div class="w-px flex-1 bg-line min-h-[22px]"></div>{% endif %}
+            </div>
+            <div class="pb-[18px]">
+              <div class="font-semibold text-sm">{{ ev.label }}</div>
+              {% if ev.detail %}<div class="text-[12.5px] text-muted-soft mt-0.5">{{ ev.detail }}</div>{% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-[13px] text-muted">No activity yet.</p>
+        {% endfor %}
+      </div>
+
+      <!-- Related records -->
+      {% include "leads/_related.html" with title="Consultations" items=consultations create_key="consultations" %}
+      {% include "leads/_related.html" with title="Post-consultation calls" items=post_calls create_key="post-consultation-calls" %}
+      {% include "leads/_related.html" with title="Enrollments" items=enrollments create_key="enrollments" %}
+      {% include "leads/_related.html" with title="Follow-ups" items=followups create_key="followups" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

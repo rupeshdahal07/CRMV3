@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard · {{ cohort }}{% endblock %}
+{% block crumb %}Leaderboard{% endblock %}
+{% block section %}Classes{% endblock %}
+{% block back_href %}{% url 'cohort_detail' cohort.pk %}{% endblock %}
+
+{% block content %}
+<div class="animate-rise">
+  <div class="mb-6">
+    <div class="text-[11px] font-semibold text-muted mb-1.5">{{ cohort }} · {{ cohort.current_week_display }}</div>
+    <h1 class="page-title">Leaderboard</h1>
+  </div>
+
+  {% if enrollments %}
+    <!-- Podium -->
+    <div class="grid grid-cols-3 gap-3.5 mb-5 items-end">
+      {% for e in enrollments|slice:":3" %}
+        <div class="{% if e.rank == 1 %}bg-podium-grad text-white shadow-lift py-7 order-2{% elif e.rank == 2 %}card py-5 order-1{% else %}card py-5 order-3{% endif %} px-3.5 rounded-card text-center">
+          <div class="font-bold text-[13px] {% if e.rank == 1 %}text-white/70{% else %}text-muted-faint{% endif %}">#{{ e.rank }}</div>
+          <div class="w-[50px] h-[50px] rounded-[14px] mx-auto my-3 grid place-items-center font-semibold text-lg
+            {% if e.rank == 1 %}bg-white/20 text-white{% else %}bg-chip text-ink{% endif %}">{{ e.lead.full_name|slice:":1"|upper }}</div>
+          <div class="font-semibold text-sm">{{ e.lead.full_name }}</div>
+          <div class="font-bold text-2xl mt-1 {% if e.rank == 1 %}text-white{% else %}text-ink{% endif %}">{{ e.total_score }}</div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Rest -->
+    <div class="card divide-y divide-line-soft">
+      {% for e in enrollments|slice:"3:" %}
+        <div class="flex items-center gap-4 px-[22px] py-3.5">
+          <div class="font-bold text-[15px] text-muted-faint w-6">{{ e.rank }}</div>
+          <div class="w-8 h-8 rounded-[9px] bg-chip avatar !text-ink text-[13px]">{{ e.lead.full_name|slice:":1"|upper }}</div>
+          <div class="flex-1 text-sm font-semibold">{{ e.lead.full_name }}</div>
+          <div class="text-[12px] text-muted-faint">{{ e.present_count }} days present</div>
+          <div class="font-bold text-brand">{{ e.total_score }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card px-6 py-12 text-center text-[13px] text-muted">No enrolled students to rank yet.</div>
+  {% endif %}
+</div>
+{% endblock %}
