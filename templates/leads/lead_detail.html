@@ -104,6 +104,42 @@
     </div>
   </div>
 
+  <!-- Follow-up history: needs-attention & resolved, with source + current status -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="section-title">Follow-up history <span class="text-muted-faint font-normal">· {{ followup_history|length }}</span></h2>
+      <div class="flex items-center gap-3">
+        {% if lead.needs_followup %}
+          <a href="{% url 'resolve_followup_need' lead.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost btn-sm">Resolve attention flags</a>
+        {% endif %}
+        <a href="{% url 'record_create' 'followups' %}?lead={{ lead.pk }}&next={{ request.get_full_path|urlencode }}" class="text-[12px] font-semibold text-brand no-underline">+ Add</a>
+      </div>
+    </div>
+    <div class="card divide-y divide-line-soft">
+      {% for h in followup_history %}
+        {% if h.pk %}
+          <a href="{% url 'record_edit' 'followups' h.pk %}?next={{ request.get_full_path|urlencode }}" class="px-5 py-3.5 flex items-start justify-between gap-3 no-underline text-ink hover:bg-line-soft">
+        {% else %}
+          <div class="px-5 py-3.5 flex items-start justify-between gap-3">
+        {% endif %}
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              {% if h.is_attention %}<span class="chip-warn">Needs attention</span>{% else %}<span class="chip-neutral">{{ h.type }}</span>{% endif %}
+              <span class="text-[11px] font-semibold text-muted truncate">{{ h.source }}</span>
+            </div>
+            {% if h.detail %}<div class="text-[13px] text-ink">{{ h.detail }}</div>{% endif %}
+            <div class="text-[11px] text-muted-faint mt-1">{% if h.date %}{{ h.date|date:"j M Y" }}{% endif %}{% if h.author %} · {{ h.author }}{% endif %}</div>
+          </div>
+          <div class="flex-shrink-0">
+            {% if h.done %}<span class="chip-ok">Resolved</span>{% else %}<span class="chip-amber">Pending</span>{% endif %}
+          </div>
+        {% if h.pk %}</a>{% else %}</div>{% endif %}
+      {% empty %}
+        <div class="px-5 py-8 text-center text-[13px] text-muted">No follow-ups recorded.</div>
+      {% endfor %}
+    </div>
+  </div>
+
   <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 items-start">
     <!-- Left: student login + related actions -->
     <div class="space-y-6">
@@ -158,11 +194,10 @@
         {% endfor %}
       </div>
 
-      <!-- Related records -->
+      <!-- Related records (Follow-ups live in the dedicated "Follow-up history" card above) -->
       {% include "leads/_related.html" with title="Consultations" items=consultations create_key="consultations" %}
       {% include "leads/_related.html" with title="Post-consultation calls" items=post_calls create_key="post-consultation-calls" %}
       {% include "leads/_related.html" with title="Enrollments" items=enrollments create_key="enrollments" %}
-      {% include "leads/_related.html" with title="Follow-ups" items=followups create_key="followups" %}
     </div>
   </div>
 </div>

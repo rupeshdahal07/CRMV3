@@ -126,7 +126,12 @@ def record_list(request, module_key):
 
     extra_context = {}
     if module_key == "followups":
-        extra_context["followup_needed"] = selectors.pending_followup_needs(qs)
+        # Build the flagged card from the full (unfiltered) scoped set so it stays
+        # stable regardless of the current search/filter. Admissions sources
+        # (call status) only for roles that can see leads.
+        scoped = perm.scope_queryset(request.user, module_key, cfg["model"].objects.all())
+        include_admissions = perm.role_of(request.user) != "teacher"
+        extra_context["flagged_items"] = selectors.flagged_attention_items(scoped, include_admissions)
 
     return render(
         request,

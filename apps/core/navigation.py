@@ -42,8 +42,6 @@ def build_nav(user, request_path, pending_followups=0):
     overview = [
         {"label": "Dashboard", "href": reverse("dashboard"), "icon": ICONS["grid"], "badge": None},
         _module_item(user, "leads", "Leads & Calls", "board", request_path),
-        _module_item(user, "cohorts", "Cohorts", "book", request_path),
-        _module_item(user, "curriculum", "Curriculum", "cal", request_path),
     ]
     admissions = [
         _module_item(user, "post-consultation-calls", "Post-Consult Calls", "bell", request_path),
@@ -51,10 +49,14 @@ def build_nav(user, request_path, pending_followups=0):
         _module_item(user, "consultations", "Consultations", "user", request_path),
         _module_item(user, "followups", "Follow-ups", "inbox", request_path, badge=pending_followups or None),
     ]
-    manage = [
-        _module_item(user, "enrollments", "Enrollments", "chart", request_path),
+    class_management = [
+        _module_item(user, "cohorts", "Cohorts", "book", request_path),
+        _module_item(user, "curriculum", "Curriculum", "cal", request_path),
         _module_item(user, "curriculum-chapters", "Curriculum Chapters", "cal", request_path),
         _module_item(user, "class-events", "Class Schedule", "cal", request_path),
+        _module_item(user, "enrollments", "Enrollments", "chart", request_path),
+    ]
+    manage = [
         _module_item(user, "intake-targets", "Intake Targets", "flag", request_path),
     ]
     if is_staff_admin:
@@ -66,6 +68,7 @@ def build_nav(user, request_path, pending_followups=0):
     groups = [
         {"label": "Overview", "items": [i for i in overview if i]},
         {"label": "Admissions", "items": [i for i in admissions if i]},
+        {"label": "Class management", "items": [i for i in class_management if i]},
         {"label": "Manage", "items": [i for i in manage if i]},
     ]
     groups = [g for g in groups if g["items"]]

@@ -63,6 +63,46 @@ def build_lead_notes(lead):
     return dated + undated
 
 
+def build_followup_history(lead):
+    """Every follow-up for this lead — pending and resolved — with its source and
+    current status. Also surfaces admissions 'Follow-up Needed' call flags."""
+    items = []
+
+    for f in lead.followups.select_related("enrollment__cohort", "created_by").all():
+        if f.followup_type == "needs_attention":
+            source = f"Class scoring · {f.enrollment.cohort}" if f.enrollment_id else "Attention flag"
+        else:
+            source = f.get_followup_type_display()
+        items.append({
+            "pk": f.pk,  # editable record
+            "type": f.get_followup_type_display(),
+            "source": source,
+            "detail": f.remark,
+            "date": f.due_date,
+            "author": f.created_by,
+            "done": f.done,
+            "is_attention": f.followup_type == "needs_attention",
+        })
+
+    # Current admissions call flags (state, not a resolvable follow-up record).
+    if lead.call_status == "Follow-up Needed":
+        items.append({
+            "pk": None, "type": "Lead call", "source": "Lead call status",
+            "detail": (lead.notes or "")[:140], "date": lead.call_date,
+            "author": lead.agent, "done": False, "is_attention": True,
+        })
+    for pc in lead.post_consultation_calls.filter(call_status="Follow-up Needed").select_related("called_by"):
+        items.append({
+            "pk": None, "type": "Post-consult call", "source": "Post-consult call status",
+            "detail": (pc.notes or "")[:140], "date": pc.call_date,
+            "author": pc.called_by, "done": False, "is_attention": True,
+        })
+
+    # Pending first, then newest date first.
+    items.sort(key=lambda x: (x["done"], -(x["date"].toordinal() if x["date"] else 0)))
+    return items
+
+
 
 def build_lead_timeline(lead):
     """A chronological, cross-stage activity feed for the lead detail page."""

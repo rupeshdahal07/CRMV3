@@ -217,10 +217,16 @@ class Enrollment(CustomFieldValueMixin):
 
     @property
     def needs_attention(self):
-        recent = list(self.daily_scores_qs().order_by("-day_number")[:3])
-        recent_absences = sum(1 for s in recent if s.status == "Absent")
-        low_scores = sum(1 for s in recent if (s.class_presence or 0) + (s.effort_discipline or 0) <= 3)
-        return recent_absences >= 2 or low_scores >= 2
+        # Flagged while this enrollment has an unresolved needs-attention follow-up.
+        # Daily scoring raises these automatically (absence auto-flag / manual tick),
+        # and resolving the follow-up on the Follow-ups page clears the flag here too.
+        return self.followups.filter(followup_type="needs_attention", done=False).exists()
+
+    @property
+    def attention_reason(self):
+        """Short 'where from' label for the cohort roster, e.g. the latest flag's remark."""
+        f = self.followups.filter(followup_type="needs_attention", done=False).order_by("-due_date", "-created_at").first()
+        return f.remark if f else ""
 
     @property
     def auto_ready_for_next_week(self):

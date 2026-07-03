@@ -8,6 +8,7 @@ and the DB access in one testable place.
 from django.utils import timezone
 
 from apps.cohorts.models import Cohort, Enrollment, Followup
+from apps.consultations.models import PostConsultationCall
 from apps.leads.models import CURIOSITY_CHOICES, IntakeTarget, Lead
 
 
@@ -27,6 +28,58 @@ def pending_followup_needs(queryset=None):
         seen.add(f.lead_id)
         result.append(f)
     return result
+
+
+def flagged_attention_items(followup_qs=None, include_admissions=False):
+    """Leads needing attention, grouped with the *source(s)* of each flag.
+
+    Sources gathered:
+      - open needs-attention follow-ups (class scoring day N, or manual)
+      - (admissions only) Lead.call_status == "Follow-up Needed"
+      - (admissions only) a PostConsultationCall with call_status == "Follow-up Needed"
+
+    Returns a list of {lead, reasons: [{kind, label, detail, date}], resolvable}.
+    `resolvable` is True when there's an open follow-up to close via the resolve flow.
+    """
+    buckets = {}
+
+    def bucket(lead):
+        b = buckets.get(lead.id)
+        if b is None:
+            b = {"lead": lead, "reasons": [], "resolvable": False}
+            buckets[lead.id] = b
+        return b
+
+    fqs = (
+        (followup_qs if followup_qs is not None else Followup.objects.all())
+        .filter(followup_type="needs_attention", done=False, lead__isnull=False)
+        .select_related("lead", "enrollment__cohort")
+        .order_by("-due_date", "-created_at")
+    )
+    for f in fqs:
+        b = bucket(f.lead)
+        if f.enrollment_id:
+            label = f"Class scoring · {f.enrollment.cohort}"
+            kind = "scoring"
+        else:
+            label = "Manual follow-up"
+            kind = "manual"
+        b["reasons"].append({"kind": kind, "label": label, "detail": f.remark, "date": f.due_date})
+        b["resolvable"] = True
+
+    if include_admissions:
+        for lead in Lead.objects.filter(call_status="Follow-up Needed"):
+            bucket(lead)["reasons"].append(
+                {"kind": "call", "label": "Lead call status: Follow-up Needed", "detail": "", "date": lead.call_date}
+            )
+        for pc in PostConsultationCall.objects.filter(call_status="Follow-up Needed").select_related("lead"):
+            bucket(pc.lead)["reasons"].append(
+                {"kind": "postcall", "label": "Post-consult call: Follow-up Needed", "detail": "", "date": pc.call_date}
+            )
+
+    items = list(buckets.values())
+    items.sort(key=lambda x: (not x["resolvable"], x["lead"].full_name.lower()))
+    return items
 
 
 # Concern/topic boolean fields tallied on the dashboard.

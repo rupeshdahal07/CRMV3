@@ -10,12 +10,12 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.accounts.services import create_student_account, set_student_credentials
 from apps.cohorts.forms import FollowupForm
-from apps.cohorts.models import Followup
+from apps.cohorts.models import DailyScore, Followup
 from apps.consultations.models import Consultation, ConsultationSlot
 from apps.core import permissions as perm
 
 from .models import DOCUMENTATION_STATUS_CHOICES, Lead
-from .selectors import build_lead_notes, build_lead_timeline
+from .selectors import build_followup_history, build_lead_notes, build_lead_timeline
 
 
 @login_required
@@ -49,6 +49,7 @@ def lead_detail(request, pk):
             "followups": lead.followups.all(),
             "timeline": build_lead_timeline(lead),
             "notes": build_lead_notes(lead),
+            "followup_history": build_followup_history(lead),
             "stages": Lead.STAGES,
             "stage_index": lead.stage_index,
             "current_stage": lead.current_stage,
@@ -155,6 +156,10 @@ def resolve_followup_need(request, lead_id):
             resolution.done = True
             resolution.save()
             pending.exclude(pk=resolution.pk).update(done=True)
+            # Clear the flag everywhere it surfaces for this lead: the cohort roster
+            # (driven by open follow-ups) resolves automatically, and here we also
+            # untick the daily-scoring flags that raised the attention.
+            DailyScore.objects.filter(enrollment__lead=lead, needs_followup=True).update(needs_followup=False)
             messages.success(request, f"Resolved {pending_count} pending followup(s) for {lead.full_name}.")
             return redirect(request.POST.get("next") or reverse("record_list", args=["followups"]))
     else:

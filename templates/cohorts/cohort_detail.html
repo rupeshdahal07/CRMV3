@@ -50,7 +50,9 @@
         <div class="font-bold text-brand">{{ e.total_score }}</div>
         <div class="text-[13px] text-muted-strong">{{ e.streak_score }} pt</div>
         <div class="text-right">
-          {% if e.needs_attention %}<span class="chip-warn">Flagged</span>{% else %}<span class="chip-ok">OK</span>{% endif %}
+          {% if e.needs_attention %}
+            <span class="chip-warn" title="{{ e.attention_reason|default:'Needs attention' }}">Flagged</span>
+          {% else %}<span class="chip-ok">OK</span>{% endif %}
         </div>
       </div>
     {% empty %}
@@ -69,9 +71,12 @@
         <span class="chip-{% if ev.event_type == 'event' %}info{% else %}neutral{% endif %}">{{ ev.get_event_type_display }}</span>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-[13.5px] truncate">{{ ev.details|default:ev.schedule_week_day_display }}</div>
-          <div class="text-[12px] text-muted">{{ ev.date|date:"D, j M"|default:"No date" }}{% if ev.time %} · {{ ev.time|time:"g:i A" }}{% endif %}{% if ev.notice %} · <span class="text-amber font-semibold">Notice</span>{% endif %}</div>
+          <div class="text-[12px] text-muted">{{ ev.date|date:"D, j M"|default:"No date" }}{% if ev.time %} · {{ ev.time|time:"g:i A" }}{% endif %}{% if ev.passcode %} · Passcode: <span class="font-semibold text-ink">{{ ev.passcode }}</span>{% endif %}{% if ev.notice %} · <span class="text-amber font-semibold">Notice</span>{% endif %}</div>
         </div>
-        {% if can_edit_events %}<a href="{% url 'record_edit' 'class-events' ev.pk %}?next={{ request.get_full_path|urlencode }}" class="text-muted-faint hover:text-ink no-underline">✎</a>{% endif %}
+        {% if ev.joining_link %}
+          <a href="{{ ev.joining_link }}" target="_blank" rel="noopener" class="btn-primary btn-sm no-underline flex-shrink-0">Join ↗</a>
+        {% endif %}
+        {% if can_edit_events %}<a href="{% url 'record_edit' 'class-events' ev.pk %}?next={{ request.get_full_path|urlencode }}" class="text-muted-faint hover:text-ink no-underline flex-shrink-0">✎</a>{% endif %}
       </div>
     {% empty %}
       <div class="px-5 py-10 text-center text-[13px] text-muted">No upcoming events.</div>

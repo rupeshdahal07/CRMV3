@@ -64,6 +64,12 @@ def is_bool(value):
 
 
 @register.filter
+def is_url(value):
+    """True for http(s) URLs, so list cells can render them as clickable links."""
+    return isinstance(value, str) and value.startswith(("http://", "https://"))
+
+
+@register.filter
 def field_type(field):
     """Best-effort widget category for styling form fields: check / select / textarea / input."""
     widget = getattr(getattr(field, "field", None), "widget", None)
