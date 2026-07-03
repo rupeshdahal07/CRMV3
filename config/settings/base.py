@@ -44,7 +44,8 @@ if _env_file.exists():
 # --- Security ---
 SECRET_KEY = env("DJANGO_SECRET_KEY", "django-insecure-dev-only-change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "*")
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "class.nobigo.ai")
+CSRF_TRUSTED_ORIGINS = ['https://class.nobigo.ai']
 
 
 # --- Applications ---
