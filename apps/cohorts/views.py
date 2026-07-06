@@ -38,7 +38,7 @@ def cohort_detail(request, pk):
             "can_edit_cohort": perm.can_edit(request.user, "cohorts"),
             "can_edit_enrollments": perm.can_edit(request.user, "enrollments"),
             "can_edit_events": can_edit_events,
-            "can_view_leads": perm.role_of(request.user) != "teacher",
+            "can_view_leads": perm.can_view(request.user, "leads"),
             "next_scoring_day": next_scoring_day,
         },
     )

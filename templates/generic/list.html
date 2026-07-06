@@ -32,13 +32,21 @@
       </div>
     {% endif %}
     {% for f in filter_defs %}
-      <select name="{{ f.param }}" onchange="this.form.submit()"
-              class="text-[12.5px] font-medium bg-surface border border-line-strong rounded-[10px] px-3 py-2 text-ink-mute cursor-pointer">
-        <option value="">{{ f.label }}: All</option>
-        {% for val, label in f.choices %}
-          <option value="{{ val }}" {% if f.value == val|stringformat:'s' %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
+      {% if f.input == 'date' %}
+        <label class="flex items-center gap-1.5 bg-surface border border-line-strong rounded-[10px] px-3 py-2 text-[12.5px] text-ink-mute">
+          <span class="text-muted-faint">{{ f.label }}</span>
+          <input type="date" name="{{ f.param }}" value="{{ f.value }}" onchange="this.form.submit()"
+                 class="bg-transparent border-0 outline-none text-[12.5px] text-ink cursor-pointer">
+        </label>
+      {% else %}
+        <select name="{{ f.param }}" onchange="this.form.submit()"
+                class="text-[12.5px] font-medium bg-surface border border-line-strong rounded-[10px] px-3 py-2 text-ink-mute cursor-pointer">
+          <option value="">{{ f.label }}: All</option>
+          {% for val, label in f.choices %}
+            <option value="{{ val }}" {% if f.value == val|stringformat:'s' %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      {% endif %}
     {% endfor %}
     <button type="submit" class="btn-ghost">Apply{% if active_filter_count %} · {{ active_filter_count }}{% endif %}</button>
     {% if q or active_filter_count %}

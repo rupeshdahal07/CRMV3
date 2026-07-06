@@ -11,6 +11,7 @@ from django.db.models import Max, Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.dateparse import parse_date
 
 from apps.accounts.services import create_student_account
 from apps.cohorts.models import Cohort, Curriculum
@@ -96,6 +97,18 @@ def record_list(request, module_key):
     computed_filters = []
     active_filter_count = 0
     for f in cfg.get("filters", []):
+        # Date-input filters render as a date picker and apply a >=/<= lookup.
+        if f.get("input") == "date":
+            raw = request.GET.get(f["param"], "").strip()
+            parsed = parse_date(raw) if raw else None
+            if parsed:
+                active_filter_count += 1
+                qs = qs.filter(**{f["field"] + "__" + f.get("lookup", "exact"): parsed})
+            filter_defs.append(
+                {"param": f["param"], "label": f["label"], "input": "date", "value": raw if parsed else ""}
+            )
+            continue
+
         choices = f["choices"] if "choices" in f else f["choices_fn"]()
         value = request.GET.get(f["param"], "").strip()
         if value:

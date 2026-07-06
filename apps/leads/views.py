@@ -20,8 +20,11 @@ from .selectors import build_followup_history, build_lead_notes, build_lead_time
 
 @login_required
 def lead_detail(request, pk):
-    if perm.role_of(request.user) == "teacher":
-        return HttpResponseForbidden("Admissions records aren't available to Teachers.")
+    role = perm.role_of(request.user)
+    if role not in ("admin", "support", "teacher"):
+        return HttpResponseForbidden("This page isn't available for your role.")
+    # Teachers get a read-only view; only Admin/Support can act on admissions records.
+    can_manage_lead = role in ("admin", "support")
     lead = get_object_or_404(Lead, pk=pk)
     already_reserved_slot_ids = lead.consultations.values_list("slot_id", flat=True)
     open_slot_count = (
@@ -56,6 +59,8 @@ def lead_detail(request, pk):
             "open_slot_count": open_slot_count,
             "enroll_suggestion": enroll_suggestion,
             "documentation_status_choices": DOCUMENTATION_STATUS_CHOICES,
+            "can_manage_lead": can_manage_lead,
+            "readonly_lead": not can_manage_lead,
         },
     )
 
@@ -131,10 +136,8 @@ def lead_reserve_slot_confirm(request, pk, slot_pk):
     lead = get_object_or_404(Lead, pk=pk)
     slot = get_object_or_404(ConsultationSlot, pk=slot_pk, status__in=["Open", "Reserved"])
     if request.method == "POST":
+        # The slot's status is kept in sync automatically (see consultations.signals).
         Consultation.objects.get_or_create(slot=slot, lead=lead, defaults={"status": "Reserved"})
-        if slot.status == "Open":
-            slot.status = "Reserved"
-            slot.save(update_fields=["status"])
         return redirect("lead_detail", pk=lead.pk)
     return redirect("lead_reserve_slot", pk=lead.pk)
 

@@ -39,9 +39,7 @@ def consultation_slot_add_attendee(request, pk):
     if request.method == "POST":
         lead_id = request.POST.get("lead_id")
         if lead_id:
+            # The slot's status is kept in sync automatically (see consultations.signals).
             Consultation.objects.get_or_create(slot=slot, lead_id=lead_id, defaults={"status": "Reserved"})
-            if slot.status == "Open":
-                slot.status = "Reserved"
-                slot.save(update_fields=["status"])
         return redirect("consultation_slot_detail", pk=slot.pk)
     return render(request, "consultations/slot_add_attendee.html", {"slot": slot, "available_leads": available_leads})

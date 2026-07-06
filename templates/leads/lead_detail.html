@@ -6,12 +6,16 @@
 {% block back_href %}{% url 'record_list' 'leads' %}{% endblock %}
 
 {% block topbar_actions %}
-  <a href="{% url 'record_edit' 'leads' lead.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost">Edit</a>
-  <form method="post" action="{% url 'lead_mark_ready' lead.pk %}" class="m-0">{% csrf_token %}
-    <button class="{% if lead.ready_for_consultation %}btn-ghost{% else %}btn-primary{% endif %}">
-      {% if lead.ready_for_consultation %}✓ Ready for consult{% else %}Mark ready for consult{% endif %}
-    </button>
-  </form>
+  {% if can_manage_lead %}
+    <a href="{% url 'record_edit' 'leads' lead.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost">Edit</a>
+    <form method="post" action="{% url 'lead_mark_ready' lead.pk %}" class="m-0">{% csrf_token %}
+      <button class="{% if lead.ready_for_consultation %}btn-ghost{% else %}btn-primary{% endif %}">
+        {% if lead.ready_for_consultation %}✓ Ready for consult{% else %}Mark ready for consult{% endif %}
+      </button>
+    </form>
+  {% else %}
+    <span class="chip-neutral">Read-only</span>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -63,15 +67,17 @@
         <div class="text-[11px] font-semibold text-muted mb-1">Documentation process</div>
         <div class="text-[15px] font-semibold">{{ lead.get_documentation_status_display|default:"Not started" }}</div>
       </div>
-      <form method="post" action="{% url 'lead_update_documentation_status' lead.pk %}" class="flex items-center gap-2 m-0">
-        {% csrf_token %}
-        <select name="documentation_status" class="input !w-auto !py-2" onchange="this.form.submit()">
-          <option value="" {% if not lead.documentation_status %}selected{% endif %}>— Not started —</option>
-          {% for val, label in documentation_status_choices %}
-            <option value="{{ val }}" {% if lead.documentation_status == val %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </form>
+      {% if can_manage_lead %}
+        <form method="post" action="{% url 'lead_update_documentation_status' lead.pk %}" class="flex items-center gap-2 m-0">
+          {% csrf_token %}
+          <select name="documentation_status" class="input !w-auto !py-2" onchange="this.form.submit()">
+            <option value="" {% if not lead.documentation_status %}selected{% endif %}>— Not started —</option>
+            {% for val, label in documentation_status_choices %}
+              <option value="{{ val }}" {% if lead.documentation_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      {% endif %}
     </div>
   </div>
 
@@ -108,16 +114,18 @@
   <div class="mb-6">
     <div class="flex items-center justify-between mb-3">
       <h2 class="section-title">Follow-up history <span class="text-muted-faint font-normal">· {{ followup_history|length }}</span></h2>
-      <div class="flex items-center gap-3">
-        {% if lead.needs_followup %}
-          <a href="{% url 'resolve_followup_need' lead.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost btn-sm">Resolve attention flags</a>
-        {% endif %}
-        <a href="{% url 'record_create' 'followups' %}?lead={{ lead.pk }}&next={{ request.get_full_path|urlencode }}" class="text-[12px] font-semibold text-brand no-underline">+ Add</a>
-      </div>
+      {% if can_manage_lead %}
+        <div class="flex items-center gap-3">
+          {% if lead.needs_followup %}
+            <a href="{% url 'resolve_followup_need' lead.pk %}?next={{ request.get_full_path|urlencode }}" class="btn-ghost btn-sm">Resolve attention flags</a>
+          {% endif %}
+          <a href="{% url 'record_create' 'followups' %}?lead={{ lead.pk }}&next={{ request.get_full_path|urlencode }}" class="text-[12px] font-semibold text-brand no-underline">+ Add</a>
+        </div>
+      {% endif %}
     </div>
     <div class="card divide-y divide-line-soft">
       {% for h in followup_history %}
-        {% if h.pk %}
+        {% if h.pk and can_manage_lead %}
           <a href="{% url 'record_edit' 'followups' h.pk %}?next={{ request.get_full_path|urlencode }}" class="px-5 py-3.5 flex items-start justify-between gap-3 no-underline text-ink hover:bg-line-soft">
         {% else %}
           <div class="px-5 py-3.5 flex items-start justify-between gap-3">
@@ -133,7 +141,7 @@
           <div class="flex-shrink-0">
             {% if h.done %}<span class="chip-ok">Resolved</span>{% else %}<span class="chip-amber">Pending</span>{% endif %}
           </div>
-        {% if h.pk %}</a>{% else %}</div>{% endif %}
+        {% if h.pk and can_manage_lead %}</a>{% else %}</div>{% endif %}
       {% empty %}
         <div class="px-5 py-8 text-center text-[13px] text-muted">No follow-ups recorded.</div>
       {% endfor %}
@@ -148,13 +156,15 @@
         <div class="panel-dark p-5">
           <div class="text-[11px] font-semibold text-muted-soft mb-1">Username</div>
           <div class="text-base mb-4 font-medium">{{ lead.student_account.username|default:"—" }}</div>
-          <div class="text-[11px] font-semibold text-muted-soft mb-1">Password</div>
-          <div class="text-base tracking-wide font-medium mb-4">{{ lead.student_account.plain_password|default:"—" }}</div>
-          <a href="{% url 'lead_student_credentials' lead.pk %}" class="inline-block text-[12px] font-semibold text-white/80 hover:text-white no-underline">Manage login →</a>
+          {% if can_manage_lead %}
+            <div class="text-[11px] font-semibold text-muted-soft mb-1">Password</div>
+            <div class="text-base tracking-wide font-medium mb-4">{{ lead.student_account.plain_password|default:"—" }}</div>
+            <a href="{% url 'lead_student_credentials' lead.pk %}" class="inline-block text-[12px] font-semibold text-white/80 hover:text-white no-underline">Manage login →</a>
+          {% endif %}
         </div>
       </div>
 
-      {% if enroll_suggestion %}
+      {% if enroll_suggestion and can_manage_lead %}
         <div class="card p-4 border-brand/30 bg-brand-soft/40">
           <div class="text-[12px] font-semibold text-brand mb-1">Suggested enrollment</div>
           <div class="text-[13px] text-ink-mute mb-3">Interested in <span class="font-semibold text-ink">{{ enroll_suggestion.preferred_cohort }}</span></div>
@@ -162,14 +172,16 @@
         </div>
       {% endif %}
 
-      <div class="card p-4">
-        <div class="text-[12px] font-semibold text-muted mb-3">Quick actions</div>
-        <div class="flex flex-wrap gap-2">
-          <a href="{% url 'lead_reserve_slot' lead.pk %}" class="btn-ghost btn-sm">Reserve slot ({{ open_slot_count }})</a>
-          <a href="{% url 'record_create' 'post-consultation-calls' %}?lead={{ lead.pk }}" class="btn-ghost btn-sm">+ Post-call</a>
-          <a href="{% url 'record_create' 'followups' %}?lead={{ lead.pk }}" class="btn-ghost btn-sm">+ Follow-up</a>
+      {% if can_manage_lead %}
+        <div class="card p-4">
+          <div class="text-[12px] font-semibold text-muted mb-3">Quick actions</div>
+          <div class="flex flex-wrap gap-2">
+            <a href="{% url 'lead_reserve_slot' lead.pk %}" class="btn-ghost btn-sm">Reserve slot ({{ open_slot_count }})</a>
+            <a href="{% url 'record_create' 'post-consultation-calls' %}?lead={{ lead.pk }}" class="btn-ghost btn-sm">+ Post-call</a>
+            <a href="{% url 'record_create' 'followups' %}?lead={{ lead.pk }}" class="btn-ghost btn-sm">+ Follow-up</a>
+          </div>
         </div>
-      </div>
+      {% endif %}
     </div>
 
     <!-- Right: timeline + related -->
@@ -195,9 +207,9 @@
       </div>
 
       <!-- Related records (Follow-ups live in the dedicated "Follow-up history" card above) -->
-      {% include "leads/_related.html" with title="Consultations" items=consultations create_key="consultations" %}
-      {% include "leads/_related.html" with title="Post-consultation calls" items=post_calls create_key="post-consultation-calls" %}
-      {% include "leads/_related.html" with title="Enrollments" items=enrollments create_key="enrollments" %}
+      {% include "leads/_related.html" with title="Consultations" items=consultations create_key="consultations" readonly=readonly_lead %}
+      {% include "leads/_related.html" with title="Post-consultation calls" items=post_calls create_key="post-consultation-calls" readonly=readonly_lead %}
+      {% include "leads/_related.html" with title="Enrollments" items=enrollments create_key="enrollments" readonly=readonly_lead %}
     </div>
   </div>
 </div>

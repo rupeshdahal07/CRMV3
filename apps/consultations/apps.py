@@ -6,3 +6,6 @@ class ConsultationsConfig(AppConfig):
     name = "apps.consultations"
     label = "consultations"
     verbose_name = "Consultations"
+
+    def ready(self):
+        from . import signals  # noqa: F401  (registers slot-status sync signals)

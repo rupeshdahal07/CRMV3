@@ -104,6 +104,8 @@ MODULES = {
         filters=[
             {"param": "status", "label": "Status", "field": "status", "choices": consult_models.SLOT_STATUS_CHOICES},
             {"param": "counselor", "label": "Counselor", "field": "counselor_id", "choices_fn": _counselors},
+            {"param": "date_from", "label": "From", "input": "date", "field": "date", "lookup": "gte"},
+            {"param": "date_to", "label": "To", "input": "date", "field": "date", "lookup": "lte"},
         ],
     ),
     "consultations": dict(

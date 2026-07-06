@@ -8,7 +8,9 @@ including context processors and templates, without import cycles.
 # Which roles may see a module's records at all, and which may create/edit/delete
 # them. Admin is implicitly allowed everywhere regardless of what's listed here.
 MODULE_PERMS = {
-    "leads": {"view": {"support"}, "edit": {"support"}},
+    # Teachers get read-only visibility into leads (to see their students' journey
+    # and other leads' state); only Support/Admin can create/edit them.
+    "leads": {"view": {"support", "teacher"}, "edit": {"support"}},
     "consultation-slots": {"view": {"support", "teacher"}, "edit": {"support", "teacher"}},
     "consultations": {"view": {"support", "teacher"}, "edit": {"support", "teacher"}},
     "post-consultation-calls": {"view": {"support"}, "edit": {"support"}},

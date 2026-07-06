@@ -2,15 +2,23 @@
 <div class="mb-4">
   <div class="flex items-center justify-between mb-2">
     <div class="text-[12px] font-semibold text-muted">{{ title }} <span class="text-muted-faint">· {{ items|length }}</span></div>
-    <a href="{% url 'record_create' create_key %}?lead={{ lead.pk }}" class="text-[12px] font-semibold text-brand no-underline">+ Add</a>
+    {% if not readonly %}
+      <a href="{% url 'record_create' create_key %}?lead={{ lead.pk }}" class="text-[12px] font-semibold text-brand no-underline">+ Add</a>
+    {% endif %}
   </div>
   {% if items %}
     <div class="card divide-y divide-line-soft">
       {% for it in items %}
-        <a href="{% url 'record_edit' create_key it.pk %}?next={{ request.get_full_path|urlencode }}" class="flex items-center justify-between px-4 py-3 no-underline text-ink hover:bg-line-soft">
-          <span class="text-[13px] font-medium truncate">{{ it }}</span>
-          <span class="text-muted-faint">›</span>
-        </a>
+        {% if readonly %}
+          <div class="flex items-center justify-between px-4 py-3">
+            <span class="text-[13px] font-medium truncate">{{ it }}</span>
+          </div>
+        {% else %}
+          <a href="{% url 'record_edit' create_key it.pk %}?next={{ request.get_full_path|urlencode }}" class="flex items-center justify-between px-4 py-3 no-underline text-ink hover:bg-line-soft">
+            <span class="text-[13px] font-medium truncate">{{ it }}</span>
+            <span class="text-muted-faint">›</span>
+          </a>
+        {% endif %}
       {% endfor %}
     </div>
   {% endif %}
