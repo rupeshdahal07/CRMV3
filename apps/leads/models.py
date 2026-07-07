@@ -209,3 +209,10 @@ class Lead(CustomFieldValueMixin):
     @property
     def needs_followup(self):
         return self.followups.filter(followup_type="needs_attention", done=False).exists()
+
+    @property
+    def call_duration_display(self):
+        if not self.call_duration_seconds:
+            return ""
+        minutes, seconds = divmod(self.call_duration_seconds, 60)
+        return f"{minutes}m {seconds}s"

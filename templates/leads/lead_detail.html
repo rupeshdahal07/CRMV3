@@ -50,14 +50,59 @@
     </div>
   </div>
 
-  <!-- Info fields -->
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-3.5 mb-6">
-    {% include "leads/_field.html" with label="Phone" value=lead.phone %}
-    {% include "leads/_field.html" with label="Level" value=lead.get_level_display %}
-    {% include "leads/_field.html" with label="Agent" value=lead.agent %}
-    {% include "leads/_field.html" with label="Visa category" value=lead.get_visa_category_display %}
-    {% include "leads/_field.html" with label="Call status" value=lead.get_call_status_display %}
-    {% include "leads/_field.html" with label="Current stage" value=current_stage %}
+  <!-- Lead details (full intake / survey) — compact single card -->
+  <div class="mb-6">
+    <h2 class="section-title mb-3">Lead details</h2>
+    <div class="card px-5 py-5">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4">
+        {% include "leads/_kv.html" with label="Phone" value=lead.phone %}
+        {% include "leads/_kv.html" with label="Signup date" value=lead.signup_date|date:"j M Y" %}
+        {% include "leads/_kv.html" with label="Stage" value=current_stage %}
+        {% include "leads/_kv.html" with label="Level" value=lead.get_level_display %}
+        {% include "leads/_kv.html" with label="Why learn Japanese" value=lead.get_why_learn_japanese_display %}
+        {% include "leads/_kv.html" with label="How far on learning" value=lead.get_journey_progress_display %}
+        {% include "leads/_kv.html" with label="Hiragana & Katakana" value=lead.get_hiragana_katakana_display %}
+        {% include "leads/_kv.html" with label="Skill focus" value=lead.get_skill_focus_display %}
+        {% include "leads/_kv.html" with label="Survey language" value=lead.get_survey_language_display %}
+        {% include "leads/_kv.html" with label="Visa category" value=lead.get_visa_category_display %}
+        {% include "leads/_kv.html" with label="Intake target" value=lead.intake_target %}
+        {% include "leads/_kv.html" with label="Curiosity to know" value=lead.get_curiosity_level_display %}
+        {% include "leads/_kv.html" with label="Already in consultancy" value=lead.already_in_consultancy|yesno:"Yes,No" %}
+        {% include "leads/_kv.html" with label="Planning to join" value=lead.planning_join_consultancy|yesno:"Yes,No" %}
+        {% include "leads/_kv.html" with label="Preferred call language" value=lead.get_preferred_call_language_display %}
+        {% include "leads/_kv.html" with label="Call date" value=lead.call_date|date:"j M Y" %}
+        {% include "leads/_kv.html" with label="Call status" value=lead.get_call_status_display %}
+        {% include "leads/_kv.html" with label="Call duration" value=lead.call_duration_display %}
+        {% include "leads/_kv.html" with label="Agent" value=lead.agent %}
+      </div>
+      {% if lead.curiosity_note %}
+        <div class="mt-4 pt-4 border-t border-line-soft">
+          <div class="text-[10.5px] font-semibold text-muted mb-0.5">Curiosity note</div>
+          <div class="text-[13px]">{{ lead.curiosity_note }}</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Concerns & interests (from the intake form) -->
+  <div class="mb-6">
+    <h2 class="section-title mb-3">Concerns &amp; interests</h2>
+    <div class="card p-5">
+      <div class="flex flex-wrap gap-2">
+        {% if lead.pain_fee %}<span class="chip-warn">Fee concern</span>{% endif %}
+        {% if lead.pain_visa_rejection %}<span class="chip-warn">Visa rejected</span>{% endif %}
+        {% if lead.pain_documentation %}<span class="chip-neutral">Document submitted</span>{% endif %}
+        {% if lead.documentation_concern %}<span class="chip-warn">Documentation concern</span>{% endif %}
+        {% if lead.pain_accommodation %}<span class="chip-warn">Accommodation concern</span>{% endif %}
+        {% if lead.topic_consultancy %}<span class="chip-amber">Consultancy doubts</span>{% endif %}
+        {% if lead.topic_language_school %}<span class="chip-amber">Language school concerns</span>{% endif %}
+        {% if lead.topic_jobs %}<span class="chip-amber">Job concern</span>{% endif %}
+        {% if lead.visa_interest %}<span class="chip-info">Interested in visa application</span>{% endif %}
+        {% if lead.ready_for_consultation %}<span class="chip-ok">Ready for consultation</span>{% endif %}
+      </div>
+      {% if lead.pain_other %}<div class="mt-3 text-[13px]"><span class="text-muted font-semibold">Other concern:</span> {{ lead.pain_other }}</div>{% endif %}
+      {% if lead.topic_other %}<div class="mt-1.5 text-[13px]"><span class="text-muted font-semibold">Other topic:</span> {{ lead.topic_other }}</div>{% endif %}
+    </div>
   </div>
 
   <!-- Documentation status -->
@@ -156,9 +201,9 @@
         <div class="panel-dark p-5">
           <div class="text-[11px] font-semibold text-muted-soft mb-1">Username</div>
           <div class="text-base mb-4 font-medium">{{ lead.student_account.username|default:"—" }}</div>
+          <div class="text-[11px] font-semibold text-muted-soft mb-1">Password</div>
+          <div class="text-base tracking-wide font-medium mb-4">{{ lead.student_account.plain_password|default:"—" }}</div>
           {% if can_manage_lead %}
-            <div class="text-[11px] font-semibold text-muted-soft mb-1">Password</div>
-            <div class="text-base tracking-wide font-medium mb-4">{{ lead.student_account.plain_password|default:"—" }}</div>
             <a href="{% url 'lead_student_credentials' lead.pk %}" class="inline-block text-[12px] font-semibold text-white/80 hover:text-white no-underline">Manage login →</a>
           {% endif %}
         </div>
