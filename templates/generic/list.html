@@ -13,8 +13,10 @@
 <div class="animate-rise">
   <div class="flex justify-between items-start mb-5">
     <div>
-      <h1 class="page-title">{{ cfg.title }}</h1>
-      {% if parent_obj %}<p class="page-sub mt-1">Filtered to <span class="font-semibold text-ink">{{ parent_obj }}</span></p>{% endif %}
+      <h1 class="page-title">{{ cfg.title }} <span class="text-muted-faint text-lg font-normal">· {{ rows|length }}</span></h1>
+      <p class="page-sub mt-1">
+        {{ rows|length }} record{{ rows|length|pluralize }}{% if active_filter_count or q %} (filtered){% endif %}{% if parent_obj %} · under <span class="font-semibold text-ink">{{ parent_obj }}</span>{% endif %}
+      </p>
     </div>
     {% if can_edit %}
       <a href="{% url 'record_create' cfg.key %}{% if parent_obj %}?{{ cfg.parent_field }}={{ parent_obj.pk }}{% endif %}" class="btn-dark">+ New</a>

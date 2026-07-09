@@ -55,3 +55,6 @@ class PostConsultationCallForm(forms.ModelForm):
         if current:
             qs = Cohort.objects.exclude(status="Finished") | Cohort.objects.filter(pk=current)
         self.fields["preferred_cohort"].queryset = qs.distinct()
+
+        # Post-consultation calls are made by Support staff.
+        self.fields["called_by"].queryset = User.objects.filter(role=User.Role.SUPPORT).order_by("username")

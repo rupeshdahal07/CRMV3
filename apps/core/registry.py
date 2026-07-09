@@ -82,6 +82,10 @@ MODULES = {
             {"param": "call_status", "label": "Call Status", "field": "call_status", "choices": lead_models.CALL_STATUS_CHOICES},
             {"param": "visa_category", "label": "Visa Category", "field": "visa_category", "choices": lead_models.VISA_CHOICES},
             {"param": "agent", "label": "Agent", "field": "agent_id", "choices_fn": _agents},
+            {"param": "call_from", "label": "Call from", "input": "date", "field": "call_date", "lookup": "gte"},
+            {"param": "call_to", "label": "Call to", "input": "date", "field": "call_date", "lookup": "lte"},
+            {"param": "signup_from", "label": "Signup from", "input": "date", "field": "signup_date", "lookup": "gte"},
+            {"param": "signup_to", "label": "Signup to", "input": "date", "field": "signup_date", "lookup": "lte"},
         ],
         default_sort="-created_at",
     ),
@@ -127,6 +131,8 @@ MODULES = {
             {"param": "status", "label": "Status", "field": "status", "choices": consult_models.ATTENDEE_STATUS_CHOICES},
             {"param": "slot", "label": "Slot", "field": "slot_id", "choices_fn": _slots},
             {"param": "user_seriousness", "label": "Seriousness", "field": "user_seriousness", "choices": consult_models.SERIOUSNESS_CHOICES},
+            {"param": "date_from", "label": "Slot from", "input": "date", "field": "slot__date", "lookup": "gte"},
+            {"param": "date_to", "label": "Slot to", "input": "date", "field": "slot__date", "lookup": "lte"},
         ],
     ),
     "post-consultation-calls": dict(
@@ -149,6 +155,8 @@ MODULES = {
             {"param": "call_status", "label": "Call Status", "field": "call_status", "choices": lead_models.CALL_STATUS_CHOICES},
             {"param": "cohort_interest", "label": "Cohort Interest?", "field": "cohort_interest", "choices": YES_NO_CHOICES},
             {"param": "called_by", "label": "Called By", "field": "called_by_id", "choices_fn": _agents},
+            {"param": "call_from", "label": "Call from", "input": "date", "field": "call_date", "lookup": "gte"},
+            {"param": "call_to", "label": "Call to", "input": "date", "field": "call_date", "lookup": "lte"},
         ],
     ),
     "curriculum": dict(
